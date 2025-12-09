@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Disponibilidad — Thrift Cálido Bazar</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .btn-burly { background-color: burlywood; color:#fff; }
+    .btn-burly:hover { filter:brightness(0.9); color:#fff; }
+  </style>
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="../index.html" style="color: burlywood; font-weight:bold;">Disponibilidad del Servicio</a>
+    <div class="ms-auto d-flex flex-wrap gap-2">
+      <a href="admin.html" class="btn btn-sm btn-burly">Panel Admin</a>
+      <a href="infraestructura.html" class="btn btn-sm btn-burly">Infraestructura</a>
+      <a href="status.html" class="btn btn-sm btn-burly">Status</a>
+      <a href "disponibilidad.html" class="btn btn-sm btn-outline-light active">Disponibilidad</a>
+      <a href="tecnologias.html" class="btn btn-sm btn-outline-light">Tecnologías</a>
+      <button class="btn btn-sm btn-outline-light" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    <h1 class="fw-bold" style="color: burlywood;">SLA (Acuerdo de Nivel de Servicio)</h1>
+    <table class="table table-bordered mt-3">
+      <thead class="table-dark">
+        <tr><th>SLA</th><th>Caída Máxima Anual</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>99.0%</td><td>87 h 36 min (~3.65 días)</td></tr>
+        <tr><td>99.9%</td><td>8 h 45 min 36 s</td></tr>
+        <tr><td>99.99%</td><td>52 min 34 s</td></tr>
+      </tbody>
+    </table>
+    <p class="mt-3"><strong>Política:</strong> Garantizamos 99.9% de disponibilidad anual. Ante incidencias, comunicamos estado y aplicamos DRP (RTO/RPO definidos) para recuperar servicio y datos.</p>
+  </div>
+
+ <div class="modal fade" id="avisoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Aviso de Privacidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              En <strong>Thrift Cálido Bazar</strong> valoramos la privacidad de nuestros clientes y 
+              nos comprometemos a proteger su información personal. Los datos proporcionados 
+              (nombre, correo electrónico, teléfono) se utilizan exclusivamente para dar 
+              seguimiento a sus consultas, pedidos o promociones relacionadas con nuestra tienda.
+            </p>
+            <p>
+              No compartimos información personal con terceros sin consentimiento, salvo que 
+              sea requerido por ley. El usuario puede ejercer sus derechos ARCO (Acceso, 
+              Rectificación, Cancelación y Oposición) contactándonos a 
+              <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <p>
+          El uso del sitio web de <strong>Thrift Cálido Bazar</strong> implica la aceptación de los siguientes
+          términos, políticas y condiciones aplicables a la venta de prendas de segunda mano.
+        </p>
+
+        <h5 class="mt-3">1. Naturaleza del producto</h5>
+        <ul>
+          <li>Las prendas ofrecidas son <strong>de segunda mano</strong>.</li>
+          <li>Pueden presentar <strong>ligeros detalles propios del uso</strong>, como desgaste menor, fibras sueltas o variaciones en color.</li>
+          <li>Las fotografías muestran el estado general de la prenda, pero pueden existir <strong>otros detalles no visibles</strong> o difíciles de capturar en imagen.</li>
+          <li>Recomendamos <strong>lavar la prenda antes de su primer uso</strong> por higiene y conservación.</li>
+        </ul>
+
+        <h5 class="mt-3">2. Disponibilidad</h5>
+        <ul>
+          <li>El inventario está sujeto a disponibilidad; cada prenda es única.</li>
+          <li>Las imágenes son representativas y pueden variar levemente.</li>
+        </ul>
+
+        <h5 class="mt-3">3. Compras y pedidos</h5>
+        <ul>
+          <li>El cliente se compromete a proporcionar información verídica al realizar un pedido.</li>
+          <li>El sistema genera un <strong>folio de compra.
+        </ul>
+
+        <h5 class="mt-3">4. Cambios, devoluciones y garantías</h5>
+        <ul>
+          <li>No se aceptan devoluciones por <strong>cambio de opinión</strong> debido a que cada prenda es única.</li>
+          <li>Sólo se considerará una devolución en caso de que la prenda recibida no coincida con la descrita.</li>
+          <li>No aplican garantías sobre prendas de segunda mano.</li>
+        </ul>
+
+        <h5 class="mt-3">5. Envíos</h5>
+        <ul>
+          <li>Todos los envios se realizan por correos de mexico.</li>
+          <li>Thrift Calido no se hace responsable de los daños que se causen durante el envio.</li>
+        </ul>
+
+        <h5 class="mt-3">6. Responsabilidad del usuario</h5>
+        <ul>
+          <li>El cliente es responsable del uso, cuidado y lavado de la prenda.</li>
+          <li>Thrift Cálido Bazar no se hace responsable por daños ocasionados por uso inadecuado o mal lavado.</li>
+        </ul>
+
+        <h5 class="mt-3">7. Datos personales</h5>
+        <ul>
+          <li>Los datos proporcionados se manejan de acuerdo con nuestro <strong>Aviso de Privacidad</strong>.</li>
+          <li>El usuario puede solicitar acceso, corrección o eliminación de sus datos enviando correo a: 
+            <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+          </li>
+        </ul>
+
+        <p class="mt-3">
+          Para más información, contáctanos por correo electrónico o vía WhatsApp al 
+          <a href="https://wa.me/524491851273" target="_blank">449 185 1273</a>.
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-center text-white py-3 mt-5">
+      <p class="mb-1">
+        <span style="color: burlywood; font-weight: bold;">&copy; 2025 Thrift Cálido Bazar</span> - Todos los derechos reservados
+      </p>
+      <a href="#" class="text-white me-3" data-bs-toggle="modal" data-bs-target="#avisoModal">Aviso de Privacidad</a>
+      <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#terminosModal">Términos y Condiciones</a>
+    </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const rol = localStorage.getItem("rol");
+    if (!rol) {
+      alert("Debes iniciar sesión primero.");
+      window.location.href = "../login.html";
+    } else if (rol !== "admin") {
+      alert("Acceso restringido: solo administradores.");
+      window.location.href = "../login.html";
+    }
+    function cerrarSesion() {
+      localStorage.removeItem("rol");
+      window.location.href = "../login.html";
+    }
+  </script>
+</body>
+</html>

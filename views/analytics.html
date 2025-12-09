@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analíticas — Thrift Cálido Bazar</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    body { background:#f8fafc; }
+    .btn-burly { background-color: burlywood; color:#fff; }
+    .btn-burly:hover { filter:brightness(0.95); color:#fff; }
+    .card-kpi { border:none; border-radius:14px; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+    .kpi-value { font-size:1.6rem; font-weight:800; }
+    .kpi-sub { font-size:.9rem; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="../index.html" style="color: burlywood; font-weight:bold;">
+      <i class="bi bi-shop"></i> Thrift Cálido Bazar
+    </a>
+    <div class="ms-auto d-flex flex-wrap gap-2">
+      <a href="../index.html" class="btn btn-sm btn-burly">Inicio</a>
+      <a href="./admin.html" class="btn btn-sm btn-burly">Panel Admin</a>
+
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-burly dropdown-toggle" data-bs-toggle="dropdown">
+          Información del Sistema
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark">
+          <li><a class="dropdown-item" href="./infraestructura.html">Infraestructura</a></li>
+          <li><a class="dropdown-item" href="./status.html">Status</a></li>
+          <li><a class="dropdown-item" href="./disponibilidad.html">Disponibilidad</a></li>
+          <li><a class="dropdown-item" href="./tecnologias.html">Tecnologías</a></li>
+          <li><a class="dropdown-item active" href="./analytics.html">Analíticas</a></li>
+        </ul>
+      </div>
+
+      <button class="btn btn-outline-light btn-sm" onclick="cerrarSesion()">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div>
+        <h1 class="fw-bold m-0" style="color: burlywood;">Analíticas del sitio</h1>
+        <small class="text-muted">Datos simulados — “como Facebook Insights”</small>
+      </div>
+      <div class="d-flex gap-2">
+        <select id="range" class="form-select form-select-sm">
+          <option value="7">Últimos 7 días</option>
+          <option value="14">Últimos 14 días</option>
+          <option value="30" selected>Últimos 30 días</option>
+          <option value="60">Últimos 60 días</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" id="btnExport">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="history.back()">
+          <i class="bi bi-arrow-left"></i> Regresar
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mt-2">
+      <div class="col-md-3">
+        <div class="card card-kpi p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Visitas</span>
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="kpi-value mt-1" id="kpiVisits">—</div>
+          <div class="kpi-sub" id="kpiVisitsDelta">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-kpi p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Usuarios únicos</span>
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="kpi-value mt-1" id="kpiUsers">—</div>
+          <div class="kpi-sub" id="kpiUsersDelta">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-kpi p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Tasa de rebote</span>
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </div>
+          <div class="kpi-value mt-1" id="kpiBounce">—</div>
+          <div class="kpi-sub" id="kpiBounceDelta">—</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-kpi p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Tiempo medio</span>
+            <i class="bi bi-stopwatch"></i>
+          </div>
+          <div class="kpi-value mt-1" id="kpiTime">—</div>
+          <div class="kpi-sub" id="kpiTimeDelta">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficas -->
+    <div class="row g-4 mt-1">
+      <div class="col-lg-8">
+        <div class="card p-3">
+          <h6 class="mb-3">Visitas por día</h6>
+          <canvas id="chartVisits" height="110"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card p-3">
+          <h6 class="mb-3">Dispositivos</h6>
+          <canvas id="chartDevices" height="160"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h6 class="mb-3">Fuentes de tráfico</h6>
+          <canvas id="chartSources" height="140"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h6 class="mb-3">Ubicación — Top países</h6>
+          <canvas id="chartCountries" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de últimos eventos -->
+    <div class="card p-3 mt-4">
+      <div class="d-flex align-items-center justify-content-between">
+        <h6 class="m-0">Últimos eventos (simulados)</h6>
+        <span class="text-muted" style="font-size:.9rem;">Actualizado hace 5 min</span>
+      </div>
+      <div class="table-responsive mt-2">
+        <table class="table table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Fecha</th>
+              <th>Evento</th>
+              <th>Origen</th>
+              <th>Dispositivo</th>
+              <th>País</th>
+            </tr>
+          </thead>
+          <tbody id="eventsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+ <div class="modal fade" id="avisoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Aviso de Privacidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              En <strong>Thrift Cálido Bazar</strong> valoramos la privacidad de nuestros clientes y 
+              nos comprometemos a proteger su información personal. Los datos proporcionados 
+              (nombre, correo electrónico, teléfono) se utilizan exclusivamente para dar 
+              seguimiento a sus consultas, pedidos o promociones relacionadas con nuestra tienda.
+            </p>
+            <p>
+              No compartimos información personal con terceros sin consentimiento, salvo que 
+              sea requerido por ley. El usuario puede ejercer sus derechos ARCO (Acceso, 
+              Rectificación, Cancelación y Oposición) contactándonos a 
+              <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <p>
+          El uso del sitio web de <strong>Thrift Cálido Bazar</strong> implica la aceptación de los siguientes
+          términos, políticas y condiciones aplicables a la venta de prendas de segunda mano.
+        </p>
+
+        <h5 class="mt-3">1. Naturaleza del producto</h5>
+        <ul>
+          <li>Las prendas ofrecidas son <strong>de segunda mano</strong>.</li>
+          <li>Pueden presentar <strong>ligeros detalles propios del uso</strong>, como desgaste menor, fibras sueltas o variaciones en color.</li>
+          <li>Las fotografías muestran el estado general de la prenda, pero pueden existir <strong>otros detalles no visibles</strong> o difíciles de capturar en imagen.</li>
+          <li>Recomendamos <strong>lavar la prenda antes de su primer uso</strong> por higiene y conservación.</li>
+        </ul>
+
+        <h5 class="mt-3">2. Disponibilidad</h5>
+        <ul>
+          <li>El inventario está sujeto a disponibilidad; cada prenda es única.</li>
+          <li>Las imágenes son representativas y pueden variar levemente.</li>
+        </ul>
+
+        <h5 class="mt-3">3. Compras y pedidos</h5>
+        <ul>
+          <li>El cliente se compromete a proporcionar información verídica al realizar un pedido.</li>
+          <li>El sistema genera un <strong>folio de compra.
+        </ul>
+
+        <h5 class="mt-3">4. Cambios, devoluciones y garantías</h5>
+        <ul>
+          <li>No se aceptan devoluciones por <strong>cambio de opinión</strong> debido a que cada prenda es única.</li>
+          <li>Sólo se considerará una devolución en caso de que la prenda recibida no coincida con la descrita.</li>
+          <li>No aplican garantías sobre prendas de segunda mano.</li>
+        </ul>
+
+        <h5 class="mt-3">5. Envíos</h5>
+        <ul>
+          <li>Todos los envios se realizan por correos de mexico.</li>
+          <li>Thrift Calido no se hace responsable de los daños que se causen durante el envio.</li>
+        </ul>
+
+        <h5 class="mt-3">6. Responsabilidad del usuario</h5>
+        <ul>
+          <li>El cliente es responsable del uso, cuidado y lavado de la prenda.</li>
+          <li>Thrift Cálido Bazar no se hace responsable por daños ocasionados por uso inadecuado o mal lavado.</li>
+        </ul>
+
+        <h5 class="mt-3">7. Datos personales</h5>
+        <ul>
+          <li>Los datos proporcionados se manejan de acuerdo con nuestro <strong>Aviso de Privacidad</strong>.</li>
+          <li>El usuario puede solicitar acceso, corrección o eliminación de sus datos enviando correo a: 
+            <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+          </li>
+        </ul>
+
+        <p class="mt-3">
+          Para más información, contáctanos por correo electrónico o vía WhatsApp al 
+          <a href="https://wa.me/524491851273" target="_blank">449 185 1273</a>.
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-center text-white py-3 mt-5">
+      <p class="mb-1">
+        <span style="color: burlywood; font-weight: bold;">&copy; 2025 Thrift Cálido Bazar</span> - Todos los derechos reservados
+      </p>
+      <a href="#" class="text-white me-3" data-bs-toggle="modal" data-bs-target="#avisoModal">Aviso de Privacidad</a>
+      <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#terminosModal">Términos y Condiciones</a>
+    </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    // Protección de rol (solo admin)
+    const rol = localStorage.getItem("rol");
+    if (!rol) {
+      alert("Debes iniciar sesión primero.");
+      window.location.href = "../login.html";
+    } else if (rol !== "admin") {
+      alert("Acceso restringido: solo administradores.");
+      window.location.href = "../login.html";
+    }
+    function cerrarSesion(){ localStorage.removeItem("rol"); window.location.href="../login.html"; }
+
+    // Estado global simples
+    let ANALYTICS = null;
+    let charts = {};
+
+    // Helpers
+    const $ = sel => document.querySelector(sel);
+    const fmtPct = n => (n*100).toFixed(1) + '%';
+    const fmtTime = s => `${Math.round(s/60)}m ${Math.round(s%60)}s`;
+
+    // Cargar mock analytics
+    fetch('../src/data/analytics.json')
+      .then(r => r.json())
+      .then(json => { ANALYTICS = json; renderAll(); })
+      .catch(err => {
+        console.error(err);
+        // Fallback mínimo por si falla el fetch (rutas locales sin server)
+        ANALYTICS = {
+          meta: { generatedAt: new Date().toISOString() },
+          daily: [],
+          totals: { visits: 0, users: 0, bounceRate: 0.35, avgTime: 182 },
+          sources: { Direct: 40, "Instagram": 25, "Facebook": 18, "Google": 12, "Otros": 5 },
+          devices: { Mobile: 62, Desktop: 30, Tablet: 8 },
+          countries: { MX: 55, US: 22, AR: 10, ES: 8, CO: 5 },
+          events: []
+        };
+        renderAll();
+      });
+
+    // Render completo
+    function renderAll(){
+      const days = parseInt($('#range').value, 10);
+      const slice = sliceDays(ANALYTICS.daily, days);
+      renderKPIs(slice);
+      renderCharts(slice);
+      renderEvents(ANALYTICS.events, 12);
+    }
+
+    // Cortar últimos N días
+    function sliceDays(series, n){
+      if (!series || !series.length) return [];
+      return series.slice(-n);
+    }
+
+    // KPI cards (comparan vs periodo anterior de mismo tamaño)
+    function renderKPIs(slice){
+      const sum = (a, f) => a.reduce((t,x)=>t+(x[f]||0),0);
+      const visits = sum(slice,'visits');
+      const users = sum(slice,'users');
+      const bounce = avg(slice,'bounce');
+      const timeOn = avg(slice,'avgTime');
+
+      const prev = previousWindow(ANALYTICS.daily, slice.length);
+      const visitsPrev = sum(prev,'visits') || 1;
+      const usersPrev = sum(prev,'users') || 1;
+      const bouncePrev = avg(prev,'bounce') || bounce;
+      const timePrev = avg(prev,'avgTime') || timeOn;
+
+      const delta = (v, pv, invert=false)=>{
+        const d = ((v - pv)/pv)*100;
+        const sign = d>=0 ? '+' : '';
+        const nice = (invert ? -d : d).toFixed(1) + '%';
+        const trend = d>=0 ? '↑' : '↓';
+        return `${trend} ${sign}${nice} vs. periodo anterior`;
+      };
+
+      $('#kpiVisits').textContent = visits.toLocaleString();
+      $('#kpiUsers').textContent = users.toLocaleString();
+      $('#kpiBounce').textContent = fmtPct(bounce);
+      $('#kpiTime').textContent = fmtTime(timeOn);
+
+      $('#kpiVisitsDelta').textContent = delta(visits, visitsPrev, false);
+      $('#kpiUsersDelta').textContent = delta(users, usersPrev, false);
+      $('#kpiBounceDelta').textContent = delta(bounce, bouncePrev, true);
+      $('#kpiTimeDelta').textContent = delta(timeOn, timePrev, false);
+    }
+
+    function avg(arr, f){
+      if (!arr || !arr.length) return 0;
+      return arr.reduce((t,x)=>t+(x[f]||0),0)/arr.length;
+    }
+    function previousWindow(all, len){
+      if (!all || !all.length || len<=0) return [];
+      const end = all.length - len - 1;
+      const start = Math.max(0, end - len + 1);
+      return end >= 0 ? all.slice(start, end+1) : [];
+    }
+
+    // Charts
+    function renderCharts(slice){
+      destroyCharts();
+
+      const labels = slice.map(d => d.date);
+      const visits = slice.map(d => d.visits);
+
+      charts.line = new Chart($('#chartVisits'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ label:'Visitas', data:visits, tension:.35, fill:false }]
+        },
+        options: {
+          responsive:true,
+          plugins:{ legend:{ display:false } },
+          scales:{ y:{ beginAtZero:true } }
+        }
+      });
+
+      charts.pie = new Chart($('#chartDevices'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(ANALYTICS.devices),
+          datasets: [{ data: Object.values(ANALYTICS.devices) }]
+        },
+        options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+      });
+
+      charts.bar1 = new Chart($('#chartSources'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(ANALYTICS.sources),
+          datasets: [{ label:'% de sesiones', data:Object.values(ANALYTICS.sources) }]
+        },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, max:100 } } }
+      });
+
+      charts.bar2 = new Chart($('#chartCountries'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(ANALYTICS.countries),
+          datasets: [{ label:'% de sesiones', data:Object.values(ANALYTICS.countries) }]
+        },
+        options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, max:100 } } }
+      });
+    }
+
+    function destroyCharts(){
+      Object.values(charts).forEach(ch => { if (ch && ch.destroy) ch.destroy(); });
+      charts = {};
+    }
+
+    // Eventos
+    function renderEvents(events, limit=10){
+      const tbody = $('#eventsBody');
+      tbody.innerHTML = '';
+      (events||[]).slice(-limit).reverse().forEach(ev=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${ev.date} ${ev.time}</td>
+          <td>${ev.event}</td>
+          <td>${ev.source}</td>
+          <td>${ev.device}</td>
+          <td>${ev.country}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Exportar CSV (datos diarios)
+    function exportCSV(){
+      if (!ANALYTICS || !ANALYTICS.daily) return;
+      const header = ['date','visits','users','bounce','avgTime'];
+      const rows = [header.join(',')].concat(
+        ANALYTICS.daily.map(d => [d.date, d.visits, d.users, d.bounce, d.avgTime].join(','))
+      );
+      const blob = new Blob([rows.join('\n')], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'analytics_thrift_calido.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Listeners
+    $('#range').addEventListener('change', renderAll);
+    $('#btnExport').addEventListener('click', exportCSV);
+  </script>
+</body>
+</html>

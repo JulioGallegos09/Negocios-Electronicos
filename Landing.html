@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thrift Calido Bazar</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  </head>
+  <body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark px-4">
+      <a class="navbar-brand" style="color: burlywood; font-weight: bold;">Thrift Calido Bazar</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="container text-center my-5">
+      <h1 class="display-4 fw-bold" style="color: burlywood;">Thrift Calido</h1>
+      <p class="lead mt-3">
+        Tu bazar en línea. Ropa de la mejor calidad a los mejores precios en un solo lugar.
+      </p>
+      <p class="text-muted">
+        Mejora tu apariencia con la mejor ropa del mercado.
+      </p>
+      <button class="btn btn-lg text-white" style="background-color: burlywood;" data-bs-toggle="modal" data-bs-target="#contactModal">
+        Contáctanos
+      </button>
+    </div>
+
+    <!-- Features -->
+    <div class="container text-center my-5">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="mb-3">
+            <i class="bi bi-check2-circle" style="font-size: 3rem; color: blue;"></i>
+          </div>
+          <h5>Ropa de calidad</h5>
+          <p>Tu mejor opción de ropa al mejor precio.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="mb-3">
+            <i class="bi bi-cart-check" style="font-size: 3rem; color: green;"></i>
+          </div>
+          <h5>Compras seguras</h5>
+          <p>Realiza tus compras sin miedo a perder tu dinero.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="mb-3">
+            <i class="bi bi-truck" style="font-size: 3rem; color: red;"></i>
+          </div>
+          <h5>Envíos Seguros</h5>
+          <p>Envíos rápidos y seguros a toda la república.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Carousel -->
+    <div class="container my-5">
+      <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner text-center">
+
+          <!-- Imagen 1 -->
+          <div class="carousel-item active">
+            <img src="ropa1.jpeg" 
+                 class="d-block mx-auto" style="max-height: 300px;" alt="Playera de licra negra">
+          </div>
+
+          <!-- Imagen 2 -->
+          <div class="carousel-item">
+            <img src="ropa2.jpeg" 
+                 class="d-block mx-auto" style="max-height: 300px;" alt="Proteína en polvo">
+          </div>
+
+          <!-- Imagen 3 -->
+          <div class="carousel-item">
+            <img src="ropa3.jpeg" 
+                 class="d-block mx-auto" style="max-height: 300px;" alt="Accesorios de gimnasio">
+          </div>
+
+        </div>
+
+        <!-- Controles (flechas) -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Siguiente</span>
+        </button>
+      </div>
+
+      <!-- Texto de contacto -->
+      <p class="text-center mt-4 fw-bold" style="color: burlywood;">
+        ¿Tienes preguntas? Contáctanos al: <br> 
+        <span style="font-size: 1.2rem;">449-489-9060</span>
+      </p>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Solicita más información</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" placeholder="Tu nombre">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Apellidos</label>
+                <input type="text" class="form-control" placeholder="Tus apellidos">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Número de teléfono</label>
+                <input type="tel" class="form-control" placeholder="Ej. 1234567890">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" placeholder="correo@ejemplo.com">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">¿Qué te interesa saber?</label>
+                <textarea class="form-control" rows="3" placeholder="Escribe aquí tu duda..."></textarea>
+              </div>
+              <button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">Enviar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Aviso de Privacidad -->
+    <div class="modal fade" id="avisoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Aviso de Privacidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Thrift Calido Bazar, con domicilio en linea, es responsable del uso y protección de sus datos personales.</p>
+            <p>Los datos personales que recopilamos serán utilizados para contactarlo, enviarle información sobre nuestros productos y atender sus solicitudes.</p>
+            <p>Usted puede ejercer sus derechos ARCO contactándonos en <strong>thriftcalido@gmail.com</strong></p>
+            <p>Para más información, puede consultar este aviso completo en este mismo sitio web.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Términos y Condiciones -->
+    <div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Términos y Condiciones</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>El uso de este sitio web implica la aceptación de los siguientes términos y condiciones:</p>
+            <ul>
+              <li>Los precios y productos pueden cambiar sin previo aviso.</li>
+              <li>El usuario se compromete a proporcionar información veraz y actualizada.</li>
+              <li>Las compras se regirán por las políticas de envío, devolución y pago establecidas por Thrift Calido Bazar.</li>
+            </ul>
+            <p>Para más información, contáctenos en <strong>thriftcalido@gmail.com</strong></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer con enlaces -->
+    <footer class="bg-dark text-center text-white py-3 mt-5">
+      <p class="mb-1">
+        <span style="color: burlywood; font-weight: bold;">&copy; 2025 Thrift Calido Bazar</span> - Todos los derechos reservados
+      </p>
+      <a href="#" class="text-white me-3" data-bs-toggle="modal" data-bs-target="#avisoModal">Aviso de Privacidad</a>
+      <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#terminosModal">Términos y Condiciones</a>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

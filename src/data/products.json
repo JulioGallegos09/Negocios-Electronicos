@@ -1,0 +1,74 @@
+[
+  {
+    "id":"SKU-001",
+    "nombre":"Chamarra gris",
+    "precio":300,
+    "categoria":"Unisex",
+    "imagen":"img/chamarra.jpeg",
+    "descripcion":"Chamarra gris de segunda mano",
+    "stock":4
+  },
+  {
+    "id":"SKU-002",
+    "nombre":"Pantalón azul",
+    "precio":200,
+    "categoria":"Hombre",
+    "imagen":"img/pantalon.jpeg",
+    "descripcion":"Pantalón de mezclilla azul",
+    "stock":6
+  },
+  {
+    "id":"SKU-003",
+    "nombre":"Short rojo",
+    "precio":150,
+    "categoria":"Mujer",
+    "imagen":"img/short.jpeg",
+    "descripcion":"Short rojo deportivo",
+    "stock":2
+  },
+  {
+    "id":"SKU-004",
+    "nombre":"Short gris",
+    "precio":150,
+    "categoria":"Mujer",
+    "imagen":"img/short2.jpeg",
+    "descripcion":"Short gris casual",
+    "stock":5
+  },
+  {
+    "id":"SKU-005",
+    "nombre":"Sudadera negra",
+    "precio":220,
+    "categoria":"Unisex",
+    "imagen":"img/sudadera.jpeg",
+    "descripcion":"Sudadera negra con capucha",
+    "stock":3
+  },
+  {
+    "id":"SKU-006",
+    "nombre":"Playera Vlone",
+    "precio":320,
+    "categoria":"Unisex",
+    "imagen":"img/vlone.jpeg",
+    "descripcion":"Playera negra Vlone",
+    "stock":4
+  },
+  {
+    "id":"SKU-007",
+    "nombre":"Playera Nike",
+    "precio":210,
+    "categoria":"Hombre",
+    "imagen":"img/nike.jpeg",
+    "descripcion":"Playera roja marca Nike",
+    "stock":6
+  },
+  {
+    "id":"SKU-008",
+    "nombre":"Playera Nascar",
+    "precio":230,
+    "categoria":"Unisex",
+    "imagen":"img/nascar.jpeg",
+    "descripcion":"Playera de la nascar",
+    "stock":3
+  }
+]

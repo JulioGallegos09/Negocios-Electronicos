@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thrift Cálido Bazar</title>
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    .btn-burly { background-color: burlywood; color: #fff; }
+    .btn-burly:hover { filter: brightness(0.9); color:#fff; }
+    .card { border: none; border-radius: 14px; box-shadow: 0 4px 8px rgba(0,0,0,.1); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <i class="bi bi-shop me-2" style="color: burlywood; font-size:1.4rem"></i>
+      <span style="color: burlywood; font-weight: bold;">Thrift Cálido Bazar</span>
+    </a>
+    <div class="ms-auto d-flex gap-2 flex-wrap">
+      <a href="index.html" class="btn btn-sm btn-burly">Inicio</a>
+      <a href="catalog.html" class="btn btn-sm btn-burly">Catálogo</a>
+      <a href="cart.html" class="btn btn-sm btn-burly">Carrito</a>
+      <!-- Dropdown agrupado -->
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-burly dropdown-toggle" data-bs-toggle="dropdown">
+          Información del Sistema
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark">
+          <li><a class="dropdown-item" href="views/infraestructura.html">Infraestructura</a></li>
+          <li><a class="dropdown-item" href="views/status.html">Status</a></li>
+          <li><a class="dropdown-item" href="views/disponibilidad.html">Disponibilidad</a></li>
+          <li><a class="dropdown-item" href="views/tecnologias.html">Tecnologías</a></li>
+        </ul>
+      </div>
+      <a href="views/usuarios.html" class="btn btn-sm btn-outline-light">Mi perfil</a>
+      <a href="views/admin.html" class="btn btn-sm btn-outline-light">Admin</a>
+      <a href="login.html" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-in-right"></i> Ingresar</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="container text-center my-5">
+    <h1 class="display-4 fw-bold" style="color: burlywood;">Thrift Cálido</h1>
+    <p class="lead mt-3">
+      Tu bazar en línea. Ropa de la mejor calidad de segunda mano a los mejores precios.
+    </p>
+    <p class="text-muted">
+      Mejora tu estilo y ayuda al planeta reutilizando prendas únicas.
+    </p>
+    <button class="btn btn-lg btn-burly" data-bs-toggle="modal" data-bs-target="#contactModal">
+      Contáctanos
+    </button>
+  </div>
+
+  <!-- Categorías -->
+  <div class="container my-5">
+    <h2 class="text-center fw-bold" style="color: burlywood;">Categorías</h2>
+    <div class="row text-center mt-4">
+      <div class="col-md-3">
+        <i class="bi bi-person" style="font-size:2rem;color:burlywood;"></i>
+        <p>Hombre</p>
+      </div>
+      <div class="col-md-3">
+        <i class="bi bi-person-fill" style="font-size:2rem;color:burlywood;"></i>
+        <p>Mujer</p>
+      </div>
+      <div class="col-md-3">
+        <i class="bi bi-emoji-smile" style="font-size:2rem;color:burlywood;"></i>
+        <p>Niños</p>
+      </div>
+      <div class="col-md-3">
+        <i class="bi bi-bag" style="font-size:2rem;color:burlywood;"></i>
+        <p>Accesorios</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Carousel -->
+  <div class="container my-5">
+    <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner text-center">
+        <div class="carousel-item active">
+          <img src="img/chamarra.jpeg" class="d-block mx-auto" style="max-height: 300px;" alt="Chamarra gris">
+        </div>
+        <div class="carousel-item">
+          <img src="img/pantalon.jpeg" class="d-block mx-auto" style="max-height: 300px;" alt="Pantalón de mezclilla">
+        </div>
+        <div class="carousel-item">
+          <img src="img/sudadera.jpeg" class="d-block mx-auto" style="max-height: 300px;" alt="Sudadera negra">
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+      </button>
+    </div>
+    <!-- Texto de contacto -->
+    <p class="text-center mt-4 fw-bold" style="color: burlywood;">
+      ¿Tienes preguntas? Contáctanos al: <br>
+      <span style="font-size: 1.2rem;">449-489-9060</span>
+    </p>
+  </div>
+
+  <!-- Productos destacados -->
+  <div class="container my-5">
+    <h2 class="text-center fw-bold" style="color: burlywood;">Productos destacados</h2>
+    <div class="row g-4 mt-4">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <img src="img/chamarra.jpeg" class="card-img-top" alt="Chamarra gris">
+          <div class="card-body text-center">
+            <h5 class="card-title">Chamarra gris</h5>
+            <p class="card-text">Chamarra de segunda mano en excelente estado.</p>
+            <p class="fw-bold">$300</p>
+            <a href="catalog.html" class="btn btn-burly">Ver catálogo</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <img src="img/pantalon.jpeg" class="card-img-top" alt="Pantalón azul">
+          <div class="card-body text-center">
+            <h5 class="card-title">Pantalón azul</h5>
+            <p class="card-text">Pantalón de mezclilla azul clásico.</p>
+            <p class="fw-bold">$200</p>
+            <a href="catalog.html" class="btn btn-burly">Ver catálogo</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <img src="img/sudadera.jpeg" class="card-img-top" alt="Sudadera negra">
+          <div class="card-body text-center">
+            <h5 class="card-title">Sudadera negra</h5>
+            <p class="card-text">Sudadera con capucha, color negro.</p>
+            <p class="fw-bold">$220</p>
+            <a href="catalog.html" class="btn btn-burly">Ver catálogo</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal contacto -->
+  <div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Solicita más información</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" placeholder="Tu nombre">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mensaje</label>
+              <textarea class="form-control" rows="3" placeholder="Escribe aquí tu duda..."></textarea>
+            </div>
+            <button type="button" class="btn btn-success w-100" data-bs-dismiss="modal">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+   <!-- Redes y contacto -->
+    <div class="container text-center my-5">
+      <h4 class="fw-bold" style="color: burlywood;">¡Conéctate con nosotros!</h4>
+      <p class="text-muted mb-4">Síguenos y mándanos mensaje para resolver tus dudas o conocer nuestras prendas.</p>
+
+      <a href="https://wa.me/524491851273" 
+         class="btn btn-success btn-lg me-3" 
+         target="_blank" 
+         style="border-radius: 30px;">
+        <i class="bi bi-whatsapp"></i> WhatsApp
+      </a>
+
+      <a href="https://www.tiktok.com/@thriftcalido" 
+         class="btn btn-dark btn-lg" 
+         target="_blank" 
+         style="border-radius: 30px; background-color: #000;">
+        <i class="bi bi-tiktok"></i> TikTok
+      </a>
+    </div>
+     <div class="modal fade" id="avisoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Aviso de Privacidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              En <strong>Thrift Cálido Bazar</strong> valoramos la privacidad de nuestros clientes y 
+              nos comprometemos a proteger su información personal. Los datos proporcionados 
+              (nombre, correo electrónico, teléfono) se utilizan exclusivamente para dar 
+              seguimiento a sus consultas, pedidos o promociones relacionadas con nuestra tienda.
+            </p>
+            <p>
+              No compartimos información personal con terceros sin consentimiento, salvo que 
+              sea requerido por ley. El usuario puede ejercer sus derechos ARCO (Acceso, 
+              Rectificación, Cancelación y Oposición) contactándonos a 
+              <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <p>
+          El uso del sitio web de <strong>Thrift Cálido Bazar</strong> implica la aceptación de los siguientes
+          términos, políticas y condiciones aplicables a la venta de prendas de segunda mano.
+        </p>
+
+        <h5 class="mt-3">1. Naturaleza del producto</h5>
+        <ul>
+          <li>Las prendas ofrecidas son <strong>de segunda mano</strong>.</li>
+          <li>Pueden presentar <strong>ligeros detalles propios del uso</strong>, como desgaste menor, fibras sueltas o variaciones en color.</li>
+          <li>Las fotografías muestran el estado general de la prenda, pero pueden existir <strong>otros detalles no visibles</strong> o difíciles de capturar en imagen.</li>
+          <li>Recomendamos <strong>lavar la prenda antes de su primer uso</strong> por higiene y conservación.</li>
+        </ul>
+
+        <h5 class="mt-3">2. Disponibilidad</h5>
+        <ul>
+          <li>El inventario está sujeto a disponibilidad; cada prenda es única.</li>
+          <li>Las imágenes son representativas y pueden variar levemente.</li>
+        </ul>
+
+        <h5 class="mt-3">3. Compras y pedidos</h5>
+        <ul>
+          <li>El cliente se compromete a proporcionar información verídica al realizar un pedido.</li>
+          <li>El sistema genera un <strong>folio de compra.
+        </ul>
+
+        <h5 class="mt-3">4. Cambios, devoluciones y garantías</h5>
+        <ul>
+          <li>No se aceptan devoluciones por <strong>cambio de opinión</strong> debido a que cada prenda es única.</li>
+          <li>Sólo se considerará una devolución en caso de que la prenda recibida no coincida con la descrita.</li>
+          <li>No aplican garantías sobre prendas de segunda mano.</li>
+        </ul>
+
+        <h5 class="mt-3">5. Envíos</h5>
+        <ul>
+          <li>Todos los envios se realizan por correos de mexico.</li>
+          <li>Thrift Calido no se hace responsable de los daños que se causen durante el envio.</li>
+        </ul>
+
+        <h5 class="mt-3">6. Responsabilidad del usuario</h5>
+        <ul>
+          <li>El cliente es responsable del uso, cuidado y lavado de la prenda.</li>
+          <li>Thrift Cálido Bazar no se hace responsable por daños ocasionados por uso inadecuado o mal lavado.</li>
+        </ul>
+
+        <h5 class="mt-3">7. Datos personales</h5>
+        <ul>
+          <li>Los datos proporcionados se manejan de acuerdo con nuestro <strong>Aviso de Privacidad</strong>.</li>
+          <li>El usuario puede solicitar acceso, corrección o eliminación de sus datos enviando correo a: 
+            <a href="mailto:thriftcalido@gmail.com">thriftcalido@gmail.com</a>.
+          </li>
+        </ul>
+
+        <p class="mt-3">
+          Para más información, contáctanos por correo electrónico o vía WhatsApp al 
+          <a href="https://wa.me/524491851273" target="_blank">449 185 1273</a>.
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div id="cookieBanner" 
+     style="position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: #222; color: #fff; padding: 15px; 
+            display: none; z-index: 9999;">
+  <div class="container d-flex justify-content-between align-items-center">
+    <p class="mb-0">
+      Usamos cookies simuladas para mejorar tu experiencia. 
+      Al continuar, aceptas nuestro uso de cookies.
+    </p>
+    <button id="acceptCookies" class="btn btn-sm btn-burly">
+      Aceptar
+    </button>
+  </div>
+</div>
+<!-- Footer -->
+    <footer class="bg-dark text-center text-white py-3 mt-5">
+      <p class="mb-1">
+        <span style="color: burlywood; font-weight: bold;">&copy; 2025 Thrift Cálido Bazar</span> 
+        - Todos los derechos reservados
+      </p>
+      <a href="#" class="text-white me-3" data-bs-toggle="modal" data-bs-target="#avisoModal">Aviso de Privacidad</a>
+      <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#terminosModal">Términos y Condiciones</a> <br>
+      <a href="certificacion.html" class="text-white">Certificacion</a>
+    </footer>
+
+    <!-- Banner de cookies -->
+    <div id="cookieBanner" 
+        style="position: fixed; bottom: 0; left: 0; width: 100%; 
+        background: #222; color: #fff; padding: 15px; 
+        display: none; z-index: 9999;">
+      <div class="container d-flex justify-content-between align-items-center">
+        <p class="mb-0">
+          Usamos cookies simuladas para mejorar tu experiencia. 
+          Al continuar, aceptas nuestro uso de cookies.
+        </p>
+        <button id="acceptCookies" class="btn btn-sm btn-burly">Aceptar</button>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de cookies -->
+    <script>
+      function setCookie(nombre, valor, dias) {
+        const d = new Date();
+        d.setTime(d.getTime() + (dias * 24 * 60 * 60 * 1000));
+        const expires = "expires=" + d.toUTCString();
+        document.cookie = nombre + "=" + valor + ";" + expires + ";path=/";
+      }
+
+      function getCookie(nombre) {
+        const name = nombre + "=";
+        const decoded = decodeURIComponent(document.cookie);
+        const partes = decoded.split(';');
+        for (let i = 0; i < partes.length; i++) {
+          let c = partes[i].trim();
+          if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        }
+        return "";
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const banner = document.getElementById("cookieBanner");
+        const btnAceptar = document.getElementById("acceptCookies");
+
+        if (!banner || !btnAceptar) return;
+
+        if (getCookie("cookieConsent") !== "true") {
+          banner.style.display = "block";
+        }
+
+        btnAceptar.addEventListener("click", () => {
+          setCookie("cookieConsent", "true", 365);
+          banner.style.display = "none";
+        });
+      });
+    </script>
+
+</body>
+</html>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Banner de Cookies -->
+
+</body>
+</html>
