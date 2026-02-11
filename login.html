@@ -18,6 +18,8 @@
   <div class="login-card text-center">
     <h3 class="fw-bold mb-2" style="color: burlywood;">Thrift Cálido Bazar</h3>
     <p class="text-muted mb-4">Inicia sesión para continuar</p>
+    <div id="loginMsg"></div>
+
     <form id="formLogin">
       <div class="mb-3 text-start">
         <label for="correo" class="form-label">Correo electrónico</label>
@@ -32,6 +34,12 @@
         <label class="form-check-label" for="admin">Entrar como administrador</label>
       </div>
       <button type="submit" class="btn btn-burly w-100 py-2">Entrar</button>
+      <p class="text-center mt-3 mb-0">
+  <a href="register.html" class="text-decoration-none">
+    ¿No tienes cuenta? Regístrate
+  </a>
+</p>
+
     </form>
     <p class="text-center mt-3 mb-0">
       <a href="index.html" class="text-decoration-none text-muted">
@@ -40,25 +48,59 @@
     </p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.getElementById('formLogin').addEventListener('submit', e => {
-      e.preventDefault();
-      const correo = document.getElementById('correo').value.trim();
-      const pass = document.getElementById('pass').value.trim();
-      const admin = document.getElementById('admin').checked;
 
-      // Guardamos el rol en localStorage y redirigimos
-      if (admin) {
-        localStorage.setItem("rol", "admin");
-        alert("Bienvenido Administrador (modo simulado)");
+<script src="src/js/api.js"></script>
+
+<script>
+  const form = document.getElementById("formLogin");
+  const msg = document.getElementById("loginMsg");
+  const chkAdmin = document.getElementById("admin");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // toma valores de tus inputs reales
+    const email = document.getElementById("correo").value.trim();
+    const password = document.getElementById("pass").value.trim();
+
+    // limpia mensajes previos
+    msg.className = "";
+    msg.textContent = "";
+
+    try {
+      const data = await apiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+
+      setSession(data);
+
+      // si el usuario marcó "Entrar como administrador" pero no es admin:
+      if (chkAdmin.checked && data.user.rol !== "admin") {
+        msg.className = "alert alert-warning";
+        msg.textContent = "Tu cuenta no es administrador. Entraste como usuario.";
+        setTimeout(() => window.location.href = "views/usuarios.html", 800);
+        return;
+      }
+
+      // redirigir según rol real
+      if (data.user.rol === "admin") {
         window.location.href = "views/admin.html";
       } else {
-        localStorage.setItem("rol", "usuario");
-        alert("Bienvenido Usuario (modo simulado)");
         window.location.href = "views/usuarios.html";
       }
-    });
-  </script>
+    } catch (err) {
+      msg.className = "alert alert-danger";
+      msg.textContent = "❌ " + err.message;
+      console.error(err);
+    }
+  });
+</script>
+<script src="src/js/navbar-role.js"></script>
+
+
+
+
+  
 </body>
 </html>
