@@ -4,38 +4,46 @@ const { auth } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.get("/", auth, async (req, res) => {
+// GET /api/metricas  -> calcula + guarda snapshot
+router.get("/", auth, (req, res) => {
   const db = getDB();
 
-  const totalClientes = await db.get("SELECT COUNT(*) as total FROM clientes");
-  const activos = await db.get("SELECT COUNT(*) as total FROM clientes WHERE estado='activo'");
-  const inactivos = await db.get("SELECT COUNT(*) as total FROM clientes WHERE estado='inactivo'");
+  const totalClientes = db.prepare("SELECT COUNT(*) as total FROM clientes").get();
+  const activos = db.prepare("SELECT COUNT(*) as total FROM clientes WHERE estado='activo'").get();
+  const inactivos = db.prepare("SELECT COUNT(*) as total FROM clientes WHERE estado='inactivo'").get();
+  const totalInteracciones = db.prepare("SELECT COUNT(*) as total FROM interacciones").get();
 
-  // interacciones por cliente
-  const interaccionesPorCliente = await db.all(`
-    SELECT c.id as cliente_id, c.nombre, COUNT(i.id) as interacciones
-    FROM clientes c
-    LEFT JOIN interacciones i ON i.cliente_id = c.id
-    GROUP BY c.id
-    ORDER BY interacciones DESC
-  `);
+  const fecha = new Date().toISOString();
 
-  // clientes sin interacción en 30 días
-  const sinReciente = await db.all(`
-    SELECT c.id, c.nombre, c.correo
-    FROM clientes c
-    LEFT JOIN interacciones i ON i.cliente_id = c.id
-    GROUP BY c.id
-    HAVING MAX(i.fecha) IS NULL OR MAX(i.fecha) < datetime('now','-30 days')
-  `);
+  db.prepare(
+    `INSERT INTO metricas 
+      (fecha, total_clientes, clientes_activos, clientes_inactivos, total_interacciones, generado_por)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(
+    fecha,
+    totalClientes.total,
+    activos.total,
+    inactivos.total,
+    totalInteracciones.total,
+    req.user.id
+  );
 
   res.json({
-    totalClientes: totalClientes.total,
-    activos: activos.total,
-    inactivos: inactivos.total,
-    interaccionesPorCliente,
-    clientesSinInteraccionReciente: sinReciente
+    fecha,
+    total_clientes: totalClientes.total,
+    clientes_activos: activos.total,
+    clientes_inactivos: inactivos.total,
+    total_interacciones: totalInteracciones.total
   });
+});
+
+// GET /api/metricas/historico  -> muestra la tabla "metricas"
+router.get("/historico", auth, (req, res) => {
+  const db = getDB();
+  const rows = db
+    .prepare("SELECT * FROM metricas ORDER BY id DESC LIMIT 50")
+    .all();
+  res.json(rows);
 });
 
 module.exports = router;

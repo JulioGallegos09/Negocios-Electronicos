@@ -1,43 +1,37 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { getDB } = require("../db/init");
-const { auth } = require("../middleware/auth");
-const { validateInteraccion } = require("../validators/interaccion.validator");
 
 const router = express.Router();
 
-// POST /interacciones
-router.post("/", auth, async (req, res) => {
-  const errors = validateInteraccion(req.body);
-  if (errors.length) return res.status(400).json({ error: errors });
+router.post("/login", (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: "Faltan datos" });
 
-  const db = getDB();
-  const { cliente_id, tipo, descripcion } = req.body;
+  try {
+    const db = getDB();
+    const user = db.prepare("SELECT * FROM usuarios WHERE email = ?").get(email);
 
-  // validar cliente exista
-  const cliente = await db.get("SELECT id FROM clientes WHERE id = ?", [cliente_id]);
-  if (!cliente) return res.status(404).json({ error: "Cliente no existe" });
+    if (!user) return res.status(401).json({ error: "Credenciales inválidas" });
 
-  const fecha = new Date().toISOString();
+    const ok = bcrypt.compareSync(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: "Credenciales inválidas" });
 
-  const result = await db.run(
-    `INSERT INTO interacciones (cliente_id, tipo, descripcion, fecha, usuario_id)
-     VALUES (?,?,?,?,?)`,
-    [cliente_id, tipo, descripcion, fecha, req.user.id]
-  );
+    const token = jwt.sign(
+      { id: user.id, rol: user.rol, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
 
-  const nueva = await db.get("SELECT * FROM interacciones WHERE id = ?", [result.lastID]);
-  res.status(201).json(nueva);
-});
-
-// GET /clientes/:id/interacciones  (lo pide el PDF)
-// Para mantenerlo en esta ruta: /api/interacciones/cliente/:id
-router.get("/cliente/:id", auth, async (req, res) => {
-  const db = getDB();
-  const rows = await db.all(
-    "SELECT * FROM interacciones WHERE cliente_id = ? ORDER BY id DESC",
-    [req.params.id]
-  );
-  res.json(rows);
+    res.json({
+      token,
+      user: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol }
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Error en login" });
+  }
 });
 
 module.exports = router;
