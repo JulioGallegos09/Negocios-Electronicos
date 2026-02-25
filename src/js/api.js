@@ -2,7 +2,7 @@
 const API_BASE = "http://localhost:3001/api";
 
 function getToken() {
-  return localStorage.getItem("token");
+  return localStorage.getItem("token") || "";
 }
 
 function setSession({ token, user }) {

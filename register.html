@@ -88,14 +88,25 @@
       }
 
       try {
-        await apiFetch("/auth/register", {
-          method: "POST",
-          body: JSON.stringify({ nombre, email, password: pass })
-        });
+        const data = await apiFetch("/auth/register", {
+  method: "POST",
+  body: JSON.stringify({ nombre, email, password: pass })
+});
 
-        msg.className = "alert alert-success";
-        msg.textContent = "✅ Cuenta creada. Ahora inicia sesión...";
-        setTimeout(() => window.location.href = "login.html", 900);
+// Guardar sesión automáticamente
+setSession(data);
+
+// Guardar nombre para navbar
+localStorage.setItem("user_nombre", data.user.nombre);
+
+msg.className = "alert alert-success";
+msg.textContent = "✅ Cuenta creada correctamente.";
+
+// Redirigir según rol (aunque siempre será usuario)
+setTimeout(() => {
+  window.location.href = "views/usuarios.html";
+}, 800);
+
       } catch (err) {
         msg.className = "alert alert-danger";
         msg.textContent = "❌ " + err.message;
