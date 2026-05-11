@@ -56,6 +56,12 @@
   const msg = document.getElementById("loginMsg");
   const chkAdmin = document.getElementById("admin");
 
+  function getDashboardByRole(rol) {
+    if (rol === "admin") return "views/admin.html";
+    if (rol === "ventas" || rol === "logistica") return "views/admin-erp.html";
+    return "views/usuarios.html";
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -74,21 +80,16 @@
       });
 
       setSession(data);
+      const destination = getDashboardByRole(data.user.rol);
 
-      // si el usuario marcó "Entrar como administrador" pero no es admin:
       if (chkAdmin.checked && data.user.rol !== "admin") {
         msg.className = "alert alert-warning";
-        msg.textContent = "Tu cuenta no es administrador. Entraste como usuario.";
-        setTimeout(() => window.location.href = "views/usuarios.html", 800);
+        msg.textContent = `Tu cuenta tiene rol ${data.user.rol}. Se abrirá el panel correspondiente.`;
+        setTimeout(() => window.location.href = destination, 800);
         return;
       }
 
-      // redirigir según rol real
-      if (data.user.rol === "admin") {
-        window.location.href = "views/admin.html";
-      } else {
-        window.location.href = "views/usuarios.html";
-      }
+      window.location.href = destination;
     } catch (err) {
       msg.className = "alert alert-danger";
       msg.textContent = "❌ " + err.message;

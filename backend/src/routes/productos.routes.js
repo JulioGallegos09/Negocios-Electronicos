@@ -23,6 +23,28 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
+function ensureCategoria(db, categoria) {
+  const nombre = String(categoria || "").trim();
+  if (!nombre) return null;
+
+  let categoriaRow = db.prepare(`
+    SELECT *
+    FROM categorias
+    WHERE lower(nombre) = lower(?)
+  `).get(nombre);
+
+  if (categoriaRow) return categoriaRow;
+
+  const slug = nombre.toLowerCase().replace(/\s+/g, "-");
+  const result = db.prepare(`
+    INSERT INTO categorias (nombre, slug, estado)
+    VALUES (?, ?, 1)
+  `).run(nombre, slug);
+
+  categoriaRow = db.prepare("SELECT * FROM categorias WHERE id = ?").get(result.lastInsertRowid);
+  return categoriaRow;
+}
+
 // POST /productos (admin) + imagen (multipart/form-data)
 router.post("/", auth, requireAdmin, upload.single("imagen"), (req, res) => {
   const {
@@ -30,7 +52,9 @@ router.post("/", auth, requireAdmin, upload.single("imagen"), (req, res) => {
     stock_actual = 0, stock_minimo = 0,
     proveedor_id, costo_unitario = 0,
     estrategia_logistica = "PULL",
-    sku = ""
+    sku = "",
+    estado = "activo",
+    destacado = 0
   } = req.body || {};
 
   if (!nombre || !descripcion || !categoria || !proveedor_id) {
@@ -40,6 +64,7 @@ router.post("/", auth, requireAdmin, upload.single("imagen"), (req, res) => {
   const db = getDB();
   const prov = db.prepare("SELECT id FROM proveedores WHERE id = ?").get(Number(proveedor_id));
   if (!prov) return res.status(404).json({ error: "Proveedor no existe" });
+  const categoriaRow = ensureCategoria(db, categoria);
 
   const estr = String(estrategia_logistica || "PULL").toUpperCase();
   if (!["PUSH", "PULL"].includes(estr)) {
@@ -51,19 +76,23 @@ router.post("/", auth, requireAdmin, upload.single("imagen"), (req, res) => {
 
   const r = db.prepare(`
     INSERT INTO productos
-    (nombre, descripcion, categoria, stock_actual, stock_minimo, proveedor_id, costo_unitario, estrategia_logistica, sku, imagen_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (nombre, descripcion, categoria, categoria_id, stock_actual, stock, stock_minimo, proveedor_id, costo_unitario, estrategia_logistica, sku, imagen_url, estado, destacado)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     nombre.trim(),
     descripcion.trim(),
     categoria.trim(),
+    categoriaRow?.id ?? null,
+    Number(stock_actual),
     Number(stock_actual),
     Number(stock_minimo),
     Number(proveedor_id),
     Number(costo_unitario),
     estr,
     String(sku).trim(),
-    imagen_url
+    imagen_url,
+    String(estado || "activo").trim(),
+    Number(destacado ? 1 : 0)
   );
 
   const nuevo = db.prepare("SELECT * FROM productos WHERE id = ?").get(r.lastInsertRowid);
@@ -97,6 +126,8 @@ router.put("/:id", auth, requireAdmin, (req, res) => {
 
   const prov = db.prepare("SELECT id FROM proveedores WHERE id = ?").get(provId);
   if (!prov) return res.status(404).json({ error: "Proveedor no existe" });
+  const categoriaNombre = body.categoria ?? current.categoria;
+  const categoriaRow = ensureCategoria(db, categoriaNombre);
 
   const estr = (body.estrategia_logistica ?? current.estrategia_logistica).toUpperCase();
   if (!["PUSH", "PULL"].includes(estr)) {
@@ -106,18 +137,25 @@ router.put("/:id", auth, requireAdmin, (req, res) => {
   db.prepare(`
     UPDATE productos SET
       nombre = ?, descripcion = ?, categoria = ?,
-      stock_actual = ?, stock_minimo = ?,
-      proveedor_id = ?, costo_unitario = ?, estrategia_logistica = ?
+      categoria_id = ?, stock_actual = ?, stock_minimo = ?,
+      stock = ?, proveedor_id = ?, costo_unitario = ?, estrategia_logistica = ?,
+      sku = ?, imagen_url = ?, estado = ?, destacado = ?
     WHERE id = ?
   `).run(
     body.nombre ?? current.nombre,
     body.descripcion ?? current.descripcion,
-    body.categoria ?? current.categoria,
+    categoriaNombre,
+    categoriaRow?.id ?? current.categoria_id ?? null,
     Number(body.stock_actual ?? current.stock_actual),
     Number(body.stock_minimo ?? current.stock_minimo),
+    Number(body.stock_actual ?? current.stock_actual ?? current.stock),
     Number(provId),
     Number(body.costo_unitario ?? current.costo_unitario),
     estr,
+    body.sku ?? current.sku,
+    body.imagen_url ?? current.imagen_url,
+    body.estado ?? current.estado ?? "activo",
+    Number(body.destacado ?? current.destacado ?? 0),
     req.params.id
   );
 
@@ -161,9 +199,13 @@ router.get("/catalogo", (req, res) => {
       stock_actual AS stock,
       stock_minimo,
       estrategia_logistica,
-      imagen_url
+      imagen_url,
+      estado,
+      destacado
     FROM productos
     WHERE stock_actual > 0
+      AND lower(coalesce(estado, 'activo')) <> 'inactivo'
+      AND trim(coalesce(imagen_url, '')) <> ''
     ORDER BY id DESC
   `).all();
 

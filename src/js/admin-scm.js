@@ -233,7 +233,7 @@ const pp_coment = document.getElementById("pp_coment");
     if (file) fd.append("imagen", file);
 
     const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:3001/api/productos", {
+    const res = await fetch(apiUrl("/productos"), {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: fd

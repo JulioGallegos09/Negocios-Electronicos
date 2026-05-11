@@ -2,8 +2,17 @@ const express = require("express");
 const { getDB } = require("../db/init");
 const { auth } = require("../middleware/auth");
 const { requireRole } = require("../middleware/role");
+const { ensureClienteForUser } = require("../services/ecommerce.service");
 
 const router = express.Router();
+const ESTADOS_LOGISTICOS = [
+  "en_almacen",
+  "en_central_para_envio",
+  "en_envio",
+  "entregado",
+  "incidencia",
+  "cancelado"
+];
 
 function validarItems(items) {
   return Array.isArray(items) && items.length > 0 &&
@@ -34,9 +43,9 @@ router.post("/", auth, requireRole("admin", "ventas"), (req, res) => {
   try {
     const tx = db.transaction(() => {
       const ordenResult = db.prepare(`
-        INSERT INTO ordenes (cliente_id, fecha, estado, total, usuario_id)
-        VALUES (?, ?, 'pendiente', 0, ?)
-      `).run(cliente_id, fecha, req.user.id);
+        INSERT INTO ordenes (cliente_id, fecha, estado, estado_logistico, fecha_estado_logistico, total, usuario_id)
+        VALUES (?, ?, 'pendiente', 'en_almacen', ?, 0, ?)
+      `).run(cliente_id, fecha, fecha, req.user.id);
 
       const ordenId = ordenResult.lastInsertRowid;
       let total = 0;
@@ -94,6 +103,68 @@ router.post("/", auth, requireRole("admin", "ventas"), (req, res) => {
   } catch (e) {
     res.status(500).json({ error: "Error al crear orden", detail: e.message });
   }
+});
+
+/**
+ * GET /api/ordenes/mias
+ * Roles: usuario
+ */
+router.get("/mias", auth, requireRole("usuario"), (req, res) => {
+  const db = getDB();
+  const cliente = ensureClienteForUser(db, req.user);
+
+  const rows = db.prepare(`
+    SELECT
+      o.*,
+      p.id AS pago_id,
+      p.estado AS pago_estado,
+      p.metodo_pago,
+      p.referencia AS pago_referencia,
+      p.factura_estado,
+      p.factura_folio,
+      p.factura_fecha_envio
+    FROM ordenes o
+    LEFT JOIN pagos p ON p.pedido_id = o.id
+    WHERE o.cliente_id = ?
+    ORDER BY o.fecha DESC, o.id DESC
+  `).all(cliente.id);
+
+  const orderIds = rows.map(row => row.id);
+  const items = orderIds.length
+    ? db.prepare(`
+        SELECT
+          oi.*,
+          pr.nombre AS producto_nombre
+        FROM ordenes_items oi
+        JOIN productos pr ON pr.id = oi.producto_id
+        WHERE oi.orden_id IN (${orderIds.map(() => "?").join(",")})
+        ORDER BY oi.orden_id DESC, oi.id ASC
+      `).all(...orderIds)
+    : [];
+
+  const itemsByOrder = new Map();
+  for (const item of items) {
+    const list = itemsByOrder.get(item.orden_id) || [];
+    list.push({
+      ...item,
+      cantidad: Number(item.cantidad || 0),
+      precio_lista: Number(item.precio_lista || 0),
+      descuento_unitario: Number(item.descuento_unitario || 0),
+      precio: Number(item.precio || 0)
+    });
+    itemsByOrder.set(item.orden_id, list);
+  }
+
+  res.json(rows.map(row => ({
+    ...row,
+    subtotal: Number(row.subtotal || 0),
+    descuento_total: Number(row.descuento_total || 0),
+    impuesto_total: Number(row.impuesto_total || 0),
+    donacion_total: Number(row.donacion_total || 0),
+    total: Number(row.total || 0),
+    factura_estado: String(row.factura_estado || "no_solicitada"),
+    items: itemsByOrder.get(row.id) || []
+  })));
 });
 
 /**
@@ -168,11 +239,60 @@ router.put("/:id/estado", auth, requireRole("admin", "ventas"), (req, res) => {
   const orden = db.prepare(`SELECT * FROM ordenes WHERE id = ?`).get(req.params.id);
   if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
 
+  const updates = ["estado = ?"];
+  const params = [estado];
+
+  if (estado === "cancelada") {
+    updates.push("estado_logistico = 'cancelado'");
+    updates.push("fecha_estado_logistico = ?");
+    params.push(new Date().toISOString());
+  }
+
+  params.push(req.params.id);
+
   db.prepare(`
     UPDATE ordenes
-    SET estado = ?
+    SET ${updates.join(", ")}
     WHERE id = ?
-  `).run(estado, req.params.id);
+  `).run(...params);
+
+  const updated = db.prepare(`
+    SELECT
+      o.*,
+      c.nombre AS cliente_nombre,
+      c.correo AS cliente_correo,
+      u.nombre AS usuario_nombre
+    FROM ordenes o
+    JOIN clientes c ON c.id = o.cliente_id
+    LEFT JOIN usuarios u ON u.id = o.usuario_id
+    WHERE o.id = ?
+  `).get(req.params.id);
+
+  res.json(updated);
+});
+
+router.put("/:id/logistica", auth, requireRole("admin", "ventas", "logistica"), (req, res) => {
+  const { estado_logistico, guia_envio = "" } = req.body || {};
+  const estado = String(estado_logistico || "").trim().toLowerCase();
+
+  if (!ESTADOS_LOGISTICOS.includes(estado)) {
+    return res.status(400).json({ error: "Estado logístico inválido" });
+  }
+
+  const db = getDB();
+  const orden = db.prepare("SELECT * FROM ordenes WHERE id = ?").get(req.params.id);
+  if (!orden) return res.status(404).json({ error: "Orden no encontrada" });
+
+  db.prepare(`
+    UPDATE ordenes
+    SET estado_logistico = ?, fecha_estado_logistico = ?, guia_envio = ?
+    WHERE id = ?
+  `).run(
+    estado,
+    new Date().toISOString(),
+    String(guia_envio || "").trim(),
+    req.params.id
+  );
 
   const updated = db.prepare(`
     SELECT
@@ -261,9 +381,9 @@ router.post("/procesar/:id", auth, requireRole("admin", "ventas"), (req, res) =>
 
       db.prepare(`
         UPDATE ordenes
-        SET estado = 'procesada'
+        SET estado = 'procesada', estado_logistico = 'en_almacen', fecha_estado_logistico = ?
         WHERE id = ?
-      `).run(ordenId);
+      `).run(new Date().toISOString(), ordenId);
     });
 
     tx();

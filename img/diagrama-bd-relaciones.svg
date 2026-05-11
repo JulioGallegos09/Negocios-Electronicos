@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Diagrama de relaciones principales de base de datos</title>
+  <desc id="desc">Relaciones principales entre tablas de autenticación, catálogo, carrito, órdenes, pagos, inventario, CRM, ERP y SCM.</desc>
+  <defs>
+    <style>
+      .bg { fill: #fbfaf8; }
+      .title { font: 700 40px Arial, sans-serif; fill: #1f2937; }
+      .subtitle { font: 400 19px Arial, sans-serif; fill: #64748b; }
+      .box { fill: #ffffff; stroke: #d6b48d; stroke-width: 2.5; rx: 12; }
+      .box-alt { fill: #f7fbf8; stroke: #a7c7b2; stroke-width: 2.5; rx: 12; }
+      .box-warn { fill: #fff8ed; stroke: #e0aa62; stroke-width: 2.5; rx: 12; }
+      .label { font: 700 18px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 13px Arial, sans-serif; fill: #64748b; }
+      .line { stroke: #94a3b8; stroke-width: 2.4; fill: none; marker-end: url(#arrowhead); }
+      .line-soft { stroke: #c4a484; stroke-width: 2.2; fill: none; marker-end: url(#arrowhead2); stroke-dasharray: 7 7; }
+      .group-title { font: 700 20px Arial, sans-serif; fill: #8b5e3c; }
+      .legend { font: 600 15px Arial, sans-serif; fill: #475569; }
+    </style>
+    <marker id="arrowhead" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L9,5.5 L1,10 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowhead2" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L9,5.5 L1,10 Z" fill="#c4a484"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1600" height="1000"/>
+  <text class="title" x="70" y="70">Relaciones Principales de la Base de Datos</text>
+  <text class="subtitle" x="70" y="105">Vista simplificada para presentación · Thrift Cálido Bazar</text>
+
+  <g transform="translate(70 160)">
+    <text class="group-title" x="0" y="-18">Usuarios</text>
+    <rect class="box" width="185" height="64"/>
+    <text class="label" x="22" y="30">usuarios</text>
+    <text class="small" x="22" y="50">login, roles</text>
+  </g>
+  <g transform="translate(70 280)">
+    <rect class="box" width="185" height="64"/>
+    <text class="label" x="22" y="30">clientes</text>
+    <text class="small" x="22" y="50">perfil, CRM</text>
+  </g>
+
+  <g transform="translate(365 160)">
+    <text class="group-title" x="0" y="-18">Catálogo</text>
+    <rect class="box" width="195" height="64"/>
+    <text class="label" x="22" y="30">productos</text>
+    <text class="small" x="22" y="50">precio, stock</text>
+  </g>
+  <g transform="translate(365 55)">
+    <rect class="box-alt" width="195" height="64"/>
+    <text class="label" x="22" y="30">categorias</text>
+    <text class="small" x="22" y="50">clasificación</text>
+  </g>
+  <g transform="translate(365 265)">
+    <rect class="box-alt" width="195" height="64"/>
+    <text class="label" x="22" y="30">promociones</text>
+    <text class="small" x="22" y="50">descuentos</text>
+  </g>
+  <g transform="translate(365 370)">
+    <rect class="box-alt" width="195" height="64"/>
+    <text class="label" x="22" y="30">proveedores</text>
+    <text class="small" x="22" y="50">suministro</text>
+  </g>
+
+  <g transform="translate(670 160)">
+    <text class="group-title" x="0" y="-18">Carrito</text>
+    <rect class="box" width="200" height="64"/>
+    <text class="label" x="22" y="30">carritos</text>
+    <text class="small" x="22" y="50">carrito abierto</text>
+  </g>
+  <g transform="translate(670 280)">
+    <rect class="box" width="200" height="64"/>
+    <text class="label" x="22" y="30">carrito_detalle</text>
+    <text class="small" x="22" y="50">items del carrito</text>
+  </g>
+
+  <g transform="translate(980 160)">
+    <text class="group-title" x="0" y="-18">Compras</text>
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">ordenes</text>
+    <text class="small" x="22" y="50">pedido final</text>
+  </g>
+  <g transform="translate(980 280)">
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">ordenes_items</text>
+    <text class="small" x="22" y="50">productos vendidos</text>
+  </g>
+  <g transform="translate(1285 160)">
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">pagos</text>
+    <text class="small" x="22" y="50">monto, factura</text>
+  </g>
+
+  <g transform="translate(70 540)">
+    <text class="group-title" x="0" y="-18">Inventario</text>
+    <rect class="box-alt" width="230" height="64"/>
+    <text class="label" x="22" y="30">movimientos_inventario</text>
+    <text class="small" x="22" y="50">entradas/salidas</text>
+  </g>
+  <g transform="translate(70 665)">
+    <rect class="box-alt" width="230" height="64"/>
+    <text class="label" x="22" y="30">alertas_stock</text>
+    <text class="small" x="22" y="50">stock bajo</text>
+  </g>
+
+  <g transform="translate(410 540)">
+    <text class="group-title" x="0" y="-18">SCM</text>
+    <rect class="box-alt" width="245" height="64"/>
+    <text class="label" x="22" y="30">pedidos_proveedor</text>
+    <text class="small" x="22" y="50">reposición</text>
+  </g>
+  <g transform="translate(410 665)">
+    <rect class="box-alt" width="245" height="64"/>
+    <text class="label" x="22" y="30">pedidos_proveedor_eventos</text>
+    <text class="small" x="22" y="50">seguimiento</text>
+  </g>
+
+  <g transform="translate(765 540)">
+    <text class="group-title" x="0" y="-18">CRM</text>
+    <rect class="box" width="210" height="64"/>
+    <text class="label" x="22" y="30">interacciones</text>
+    <text class="small" x="22" y="50">historial</text>
+  </g>
+  <g transform="translate(765 665)">
+    <rect class="box" width="210" height="64"/>
+    <text class="label" x="22" y="30">mensajes_cliente</text>
+    <text class="small" x="22" y="50">avisos</text>
+  </g>
+  <g transform="translate(765 790)">
+    <rect class="box" width="210" height="64"/>
+    <text class="label" x="22" y="30">tickets_atencion</text>
+    <text class="small" x="22" y="50">soporte</text>
+  </g>
+
+  <g transform="translate(1110 540)">
+    <text class="group-title" x="0" y="-18">ERP</text>
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">erp_estado</text>
+    <text class="small" x="22" y="50">madurez</text>
+  </g>
+  <g transform="translate(1110 665)">
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">procesos_erp</text>
+    <text class="small" x="22" y="50">procesos</text>
+  </g>
+  <g transform="translate(1110 790)">
+    <rect class="box-warn" width="200" height="64"/>
+    <text class="label" x="22" y="30">recursos_erp</text>
+    <text class="small" x="22" y="50">recursos</text>
+  </g>
+
+  <g transform="translate(1325 665)">
+    <rect class="box-alt" width="160" height="64"/>
+    <text class="label" x="22" y="30">impuestos</text>
+    <text class="small" x="22" y="50">checkout</text>
+  </g>
+
+  <g transform="translate(1325 790)">
+    <rect class="box-alt" width="160" height="64"/>
+    <text class="label" x="22" y="30">metricas</text>
+    <text class="small" x="22" y="50">reportes</text>
+  </g>
+
+  <path class="line" d="M162 224 L162 280"/>
+  <path class="line" d="M255 312 C400 312, 525 312, 670 192"/>
+  <path class="line" d="M560 192 L670 192"/>
+  <path class="line" d="M770 224 L770 280"/>
+  <path class="line" d="M870 312 C910 312, 940 312, 980 312"/>
+  <path class="line" d="M1080 280 L1080 224"/>
+  <path class="line" d="M1180 192 L1285 192"/>
+
+  <path class="line" d="M462 119 L462 160"/>
+  <path class="line-soft" d="M462 265 L462 224"/>
+  <path class="line" d="M462 370 L462 224"/>
+  <path class="line" d="M462 224 C390 365, 265 470, 185 540"/>
+  <path class="line" d="M462 224 C410 425, 250 535, 185 665"/>
+
+  <path class="line" d="M300 697 L410 572"/>
+  <path class="line" d="M655 572 C695 572, 725 572, 765 572"/>
+  <path class="line" d="M532 604 L532 665"/>
+
+  <path class="line" d="M255 312 C505 480, 630 520, 765 572"/>
+  <path class="line" d="M255 312 C530 565, 630 660, 765 697"/>
+  <path class="line" d="M255 312 C545 625, 650 765, 765 822"/>
+
+  <path class="line-soft" d="M1080 224 C1170 395, 1190 470, 1210 540"/>
+  <path class="line-soft" d="M1210 604 L1210 665"/>
+  <path class="line-soft" d="M1210 729 L1210 790"/>
+  <path class="line" d="M1180 192 C1270 330, 1355 510, 1405 665"/>
+  <path class="line-soft" d="M1180 224 C1275 490, 1350 670, 1405 790"/>
+
+  <g transform="translate(70 920)">
+    <rect x="0" y="-28" width="22" height="14" class="box"/>
+    <text class="legend" x="34" y="-16">Tablas operativas</text>
+    <rect x="215" y="-28" width="22" height="14" class="box-alt"/>
+    <text class="legend" x="249" y="-16">Soporte / inventario</text>
+    <rect x="455" y="-28" width="22" height="14" class="box-warn"/>
+    <text class="legend" x="489" y="-16">Procesos de compra / ERP</text>
+    <text class="small" x="780" y="-16">Nota: pedidos es tabla legado; sqlite_sequence es interna de SQLite.</text>
+  </g>
+</svg>

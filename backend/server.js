@@ -10,6 +10,7 @@ const interaccionesRoutes = require("./src/routes/interacciones.routes");
 const metricasRoutes = require("./src/routes/metricas.routes");
 const proveedoresRoutes = require("./src/routes/proveedores.routes");
 const productosRoutes = require("./src/routes/productos.routes");
+const categoriasRoutes = require("./src/routes/categorias.routes");
 const inventarioRoutes = require("./src/routes/inventario.routes");
 const pedidosProveedorRoutes = require("./src/routes/pedidosProveedor.routes");
 const alertasStockRoutes = require("./src/routes/alertasStock.routes");
@@ -17,6 +18,12 @@ const ordenesRoutes = require("./src/routes/ordenes.routes");
 const erpRoutes = require("./src/routes/erp.routes");
 const usuariosRoutes = require("./src/routes/usuarios.routes");
 const mensajesClienteRoutes = require("./src/routes/mensajesCliente.routes");
+const catalogoRoutes = require("./src/routes/catalogo.routes");
+const carritoRoutes = require("./src/routes/carrito.routes");
+const pagosRoutes = require("./src/routes/pagos.routes");
+const promocionesRoutes = require("./src/routes/promociones.routes");
+const impuestosRoutes = require("./src/routes/impuestos.routes");
+const ticketsAtencionRoutes = require("./src/routes/ticketsAtencion.routes");
 
 
 // ✅ FALTABAN ESTAS DOS
@@ -41,6 +48,7 @@ app.use("/api/metricas", metricasRoutes);
 
 app.use("/api/proveedores", proveedoresRoutes);
 app.use("/api/productos", productosRoutes);
+app.use("/api/categorias", categoriasRoutes);
 app.use("/api/inventario", inventarioRoutes);
 app.use("/api/pedidos-proveedor", pedidosProveedorRoutes);
 app.use("/api/alertas-stock", alertasStockRoutes);
@@ -51,6 +59,13 @@ app.use("/api/procesos-erp", procesosErpRoutes);
 app.use("/api/recursos-erp", recursosErpRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/mensajes-cliente", mensajesClienteRoutes);
+app.use("/api/catalogo", catalogoRoutes);
+app.use("/api/carrito", carritoRoutes);
+app.use("/api/pagos", pagosRoutes);
+app.use("/api/promociones", promocionesRoutes);
+app.use("/api/impuestos", impuestosRoutes);
+app.use("/api/atencion/ticket", ticketsAtencionRoutes);
+app.use("/api/atencion/tickets", ticketsAtencionRoutes);
 
 const PORT = process.env.PORT || 3001;
 

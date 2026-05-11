@@ -11,6 +11,9 @@
     .login-card { width:420px; background:#fff; border-radius:14px; padding:2rem; box-shadow:0 4px 8px rgba(0,0,0,0.15); }
     .btn-burly { background-color: burlywood; color:#fff; font-weight:600; }
     .btn-burly:hover { filter:brightness(0.9); color:#fff; }
+    .password-rules { font-size:.86rem; color:#6c757d; margin-top:.45rem; }
+    .password-rules ul { margin:.35rem 0 0; padding-left:1.1rem; }
+    .password-rules li { margin:.08rem 0; }
   </style>
 </head>
 <body>
@@ -33,13 +36,32 @@
       </div>
 
       <div class="mb-3 text-start">
+        <label for="telefono" class="form-label">Teléfono</label>
+        <input type="text" id="telefono" class="form-control" placeholder="449 000 0000">
+      </div>
+
+      <div class="mb-3 text-start">
+        <label for="direccion" class="form-label">Dirección</label>
+        <input type="text" id="direccion" class="form-control" placeholder="Calle, número, colonia">
+      </div>
+
+      <div class="mb-3 text-start">
         <label for="pass" class="form-label">Contraseña</label>
-        <input type="password" id="pass" class="form-control" placeholder="Mínimo 4 caracteres">
+        <input type="password" id="pass" class="form-control" placeholder="Mínimo 8 caracteres, letra y número" autocomplete="new-password">
+        <div class="password-rules">
+          La contraseña debe cumplir:
+          <ul>
+            <li>Mínimo 8 caracteres</li>
+            <li>Al menos una letra</li>
+            <li>Al menos un número</li>
+            <li>No usar contraseñas comunes como admin123 o 12345678</li>
+          </ul>
+        </div>
       </div>
 
       <div class="mb-3 text-start">
         <label for="pass2" class="form-label">Confirmar contraseña</label>
-        <input type="password" id="pass2" class="form-control" placeholder="Repite la contraseña">
+        <input type="password" id="pass2" class="form-control" placeholder="Repite la contraseña" autocomplete="new-password">
       </div>
 
       <button type="submit" class="btn btn-burly w-100 py-2">Crear cuenta</button>
@@ -65,6 +87,8 @@
 
       const nombre = document.getElementById("nombre").value.trim();
       const email = document.getElementById("correo").value.trim();
+      const telefono = document.getElementById("telefono").value.trim();
+      const direccion = document.getElementById("direccion").value.trim();
       const pass = document.getElementById("pass").value.trim();
       const pass2 = document.getElementById("pass2").value.trim();
 
@@ -76,9 +100,10 @@
         msg.textContent = "Completa nombre, correo y contraseña.";
         return;
       }
-      if (pass.length < 4) {
+      const passwordError = validatePassword(pass);
+      if (passwordError) {
         msg.className = "alert alert-warning";
-        msg.textContent = "La contraseña debe tener mínimo 4 caracteres.";
+        msg.textContent = passwordError;
         return;
       }
       if (pass !== pass2) {
@@ -90,7 +115,7 @@
       try {
         const data = await apiFetch("/auth/register", {
   method: "POST",
-  body: JSON.stringify({ nombre, email, password: pass })
+  body: JSON.stringify({ nombre, email, telefono, direccion, password: pass })
 });
 
 // Guardar sesión automáticamente
@@ -112,6 +137,25 @@ setTimeout(() => {
         msg.textContent = "❌ " + err.message;
       }
     });
+
+    function validatePassword(password) {
+      const weakPasswords = ["12345678", "password", "password1", "admin123", "admin1234", "qwerty123"];
+
+      if (password.length < 8) {
+        return "La contraseña debe tener al menos 8 caracteres.";
+      }
+      if (!/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(password)) {
+        return "La contraseña debe incluir al menos una letra.";
+      }
+      if (!/\d/.test(password)) {
+        return "La contraseña debe incluir al menos un número.";
+      }
+      if (weakPasswords.includes(password.toLowerCase())) {
+        return "La contraseña es demasiado común. Elige una más segura.";
+      }
+
+      return "";
+    }
   </script>
   <script src="src/js/navbar-role.js"></script>
 

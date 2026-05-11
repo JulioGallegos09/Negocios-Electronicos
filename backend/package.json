@@ -2,9 +2,15 @@
   "name": "backend-thrift-calido",
   "version": "1.0.0",
   "main": "server.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
+    "predev": "npm rebuild better-sqlite3",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "prestart": "npm rebuild better-sqlite3",
+    "start": "node server.js",
+    "fix:native": "npm rebuild better-sqlite3"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

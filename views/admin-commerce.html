@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comercio Electrónico — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    body { background:#f8fafc; }
+    .btn-burly { background-color: burlywood; color:#fff; }
+    .btn-burly:hover { filter:brightness(0.9); color:#fff; }
+    .card { border:none; border-radius:16px; box-shadow:0 12px 28px rgba(15,23,42,.08); }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="../index.html" style="color: burlywood; font-weight:bold;">
+      <i class="bi bi-shop"></i> Thrift Cálido Bazar
+    </a>
+    <div class="ms-auto d-flex gap-2 flex-wrap">
+      <a href="../index.html" class="btn btn-sm btn-burly">Inicio</a>
+      <a href="./admin.html" class="btn btn-sm btn-outline-light">Panel admin</a>
+      <a href="./admin-commerce.html" class="btn btn-sm btn-outline-light active">E-commerce</a>
+      <button class="btn btn-sm btn-outline-light" onclick="clearSession(); window.location.href='../login.html';">
+        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+      </button>
+    </div>
+  </nav>
+
+  <div class="container my-5">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+      <div>
+        <h1 class="fw-bold mb-1" style="color: burlywood;">Operación comercial</h1>
+        <p class="text-muted mb-0">Configura impuestos, promociones y seguimiento de tickets de clientes.</p>
+      </div>
+      <div id="adminCommerceMsg"></div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="card p-4 h-100">
+          <h2 class="h5 fw-bold mb-3">Impuestos</h2>
+          <form id="taxForm" class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="taxName" placeholder="IVA">
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Porcentaje</label>
+              <input type="number" class="form-control" id="taxRate" step="0.01" min="0" placeholder="16">
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="taxEnabled" checked>
+                <label class="form-check-label" for="taxEnabled">Activo en checkout</label>
+              </div>
+            </div>
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-burly" type="submit">Guardar impuesto</button>
+            </div>
+          </form>
+          <div class="table-responsive mt-4">
+            <table class="table table-sm align-middle">
+              <thead class="table-dark">
+                <tr><th>Nombre</th><th>%</th><th>Estado</th></tr>
+              </thead>
+              <tbody id="taxBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card p-4 h-100">
+          <h2 class="h5 fw-bold mb-3">Promociones</h2>
+          <form id="promoForm" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="promoName" placeholder="Destacados de temporada">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="promoType">
+                <option value="porcentaje">Porcentaje</option>
+                <option value="monto_fijo">Monto fijo</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Valor</label>
+              <input type="number" class="form-control" id="promoValue" step="0.01" min="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Categoría objetivo</label>
+              <input type="text" class="form-control" id="promoCategory" placeholder="Opcional">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Producto objetivo</label>
+              <select class="form-select" id="promoProduct">
+                <option value="">Todos los productos</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Inicio</label>
+              <input type="datetime-local" class="form-control" id="promoStart">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fin</label>
+              <input type="datetime-local" class="form-control" id="promoEnd">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" id="promoDescription" rows="2" placeholder="Cómo se mostrará en catálogo"></textarea>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="promoFeaturedOnly">
+                <label class="form-check-label" for="promoFeaturedOnly">Solo destacados</label>
+              </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+              <button class="btn btn-burly" type="submit">Guardar promoción</button>
+            </div>
+          </form>
+
+          <div class="table-responsive mt-4">
+            <table class="table table-sm align-middle">
+              <thead class="table-dark">
+                <tr><th>Promoción</th><th>Aplicación</th><th>Ventana</th></tr>
+              </thead>
+              <tbody id="promoBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 mt-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="h5 fw-bold mb-1">Tickets de atención</h2>
+          <p class="text-muted mb-0">Responde solicitudes y deja trazabilidad conectada con CRM.</p>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" id="reloadTicketsBtn">
+          <i class="bi bi-arrow-clockwise"></i> Recargar
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead class="table-dark">
+            <tr><th>Cliente</th><th>Asunto</th><th>Estado</th><th>Mensaje</th><th>Responder</th></tr>
+          </thead>
+          <tbody id="ticketAdminBody"></tbody>
+        </table>
+      </div>
+      <div class="row g-3 mt-3">
+        <div class="col-md-3">
+          <label class="form-label">Ticket seleccionado</label>
+          <input type="text" class="form-control" id="ticketSelected" readonly>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Nuevo estado</label>
+          <select class="form-select" id="ticketStatus">
+            <option value="respondido">Respondido</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="cerrado">Cerrado</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Respuesta</label>
+          <textarea class="form-control" id="ticketReply" rows="2" placeholder="Escribe aquí la respuesta"></textarea>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button class="btn btn-burly" id="sendTicketReply">Responder ticket</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../src/js/api.js"></script>
+  <script src="../src/js/guard.js" data-roles="admin"></script>
+  <script src="../src/js/admin-commerce.js"></script>
+  <script src="../src/js/navbar-role.js"></script>
+</body>
+</html>

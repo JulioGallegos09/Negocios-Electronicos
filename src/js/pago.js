@@ -1,45 +1,62 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Verificar rol
   const rol = localStorage.getItem("rol");
   if (!rol) {
     alert("Debes iniciar sesión primero.");
     window.location.href = "login.html";
     return;
-  } else if (rol !== "usuario") {
+  }
+  if (rol !== "usuario") {
     alert("Acceso restringido: solo usuarios.");
     window.location.href = "views/admin.html";
     return;
   }
 
-  const CART_KEY = "thrift_cart";
+  const { escapeHtml, money, refreshCartBadge } = window.ecommerceUtils || {};
+  const {
+    downloadFacturaPdf,
+    enviarFacturaPorCorreo,
+    openFacturaWindow
+  } = window.invoiceUtils || {};
   const WALLET_KEY = "thrift_wallet";
-  let PRODUCTS = [];
+  const PAYPAL_METHOD = "PayPal Sandbox";
 
-  function loadCart() {
-    return JSON.parse(localStorage.getItem(CART_KEY) || "{}");
-  }
+  const cartBody = document.getElementById("cart-body");
+  const cartSubtotal = document.getElementById("cart-subtotal");
+  const cartDiscount = document.getElementById("cart-discount");
+  const cartTaxes = document.getElementById("cart-taxes");
+  const cartTotal = document.getElementById("cart-total");
+  const paymentStatus = document.getElementById("payment-status");
+  const escenarioSelect = document.getElementById("escenarioPrueba");
+  const radiosMetodo = document.querySelectorAll('input[name="metodoPago"]');
+  const datosTarjetaDiv = document.getElementById("datosTarjeta");
+  const infoOtrosDiv = document.getElementById("infoOtrosMetodos");
+  const datosMicropagoDiv = document.getElementById("datosMicropago");
+  const datosChequeDiv = document.getElementById("datosCheque");
+  const paypalSection = document.getElementById("paypalSection");
+  const paypalNotice = document.getElementById("paypalNotice");
+  const paypalButtonsContainer = document.getElementById("paypalButtons");
+  const fiscalCheckbox = document.getElementById("fiscalFactura");
+  const fiscalesSection = document.getElementById("fiscalesSection");
+  const donateToggle = document.getElementById("donateToggle");
+  const donationOptions = document.getElementById("donationOptions");
+  const donateCustomAmount = document.getElementById("donateCustomAmount");
+  const donateAmountRadios = document.querySelectorAll("input[name='donateAmount']");
+  const folioLabel = document.getElementById("folioLabel");
+  const paymentSummaryLabel = document.getElementById("paymentSummaryLabel");
+  const paymentReferenceLabel = document.getElementById("paymentReferenceLabel");
+  const invoiceActionsBox = document.getElementById("invoiceActionsBox");
+  const btnInvoiceView = document.getElementById("btnInvoiceView");
+  const btnInvoicePdf = document.getElementById("btnInvoicePdf");
+  const btnInvoiceEmail = document.getElementById("btnInvoiceEmail");
+  const btnConfirmarPago = document.getElementById("btnConfirmarPago");
 
-  function renderCart() {
-    const cart = loadCart();
-    const body = document.getElementById("cart-body");
-    body.innerHTML = "";
-    let total = 0;
-    Object.entries(cart).forEach(([id, qty]) => {
-      const p = PRODUCTS.find((x) => x.id === id);
-      if (!p) return;
-      const subtotal = p.precio * qty;
-      total += subtotal;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${p.nombre}</td>
-        <td>${qty}</td>
-        <td>$${p.precio.toFixed(2)}</td>
-        <td>$${subtotal.toFixed(2)}</td>
-      `;
-      body.appendChild(tr);
-    });
-    document.getElementById("cart-total").textContent = "$" + total.toFixed(2);
-  }
+  let currentCart = null;
+  let currentInvoicePayload = null;
+  let shouldRedirectOnEmpty = true;
+  let payPalConfig = null;
+  let payPalSdkPromise = null;
+  let payPalButtonsReady = false;
+  let pendingPayPalPayload = null;
 
   function getWallet() {
     return Number(localStorage.getItem(WALLET_KEY) || "0");
@@ -49,30 +66,12 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(WALLET_KEY, String(value));
   }
 
-  function cerrarSesion() {
-    localStorage.removeItem("rol");
-    window.location.href = "login.html";
+  function getSelectedMethod() {
+    return document.querySelector('input[name="metodoPago"]:checked')?.value || "";
   }
-  window.cerrarSesion = cerrarSesion;
-
-  const radiosMetodo = document.querySelectorAll('input[name="metodoPago"]');
-  const datosTarjetaDiv = document.getElementById("datosTarjeta");
-  const infoOtrosDiv = document.getElementById("infoOtrosMetodos");
-  const datosMicropagoDiv = document.getElementById("datosMicropago");
-  const datosChequeDiv = document.getElementById("datosCheque");
-  const fiscalCheckbox = document.getElementById("fiscalFactura");
-  const fiscalesSection = document.getElementById("fiscalesSection");
-  const paymentStatus = document.getElementById("payment-status");
-  const escenarioSelect = document.getElementById("escenarioPrueba");
-
-  // Donación
-  const donateToggle = document.getElementById("donateToggle");
-  const donationOptions = document.getElementById("donationOptions");
-  const donateCustomAmount = document.getElementById("donateCustomAmount");
-  const donateAmountRadios = document.querySelectorAll("input[name='donateAmount']");
 
   function setPaymentStatus(type, text) {
-    paymentStatus.className = "alert mt-3 alert-" + type;
+    paymentStatus.className = `alert mt-3 alert-${type}`;
     paymentStatus.textContent = text;
     paymentStatus.classList.remove("d-none");
   }
@@ -82,44 +81,36 @@ document.addEventListener("DOMContentLoaded", () => {
     paymentStatus.textContent = "";
   }
 
+  function setPayPalNotice(text, tone = "muted") {
+    if (!paypalNotice) return;
+
+    const className = tone === "danger"
+      ? "text-danger"
+      : tone === "success"
+        ? "text-success"
+        : tone === "warning"
+          ? "text-warning"
+          : "text-muted";
+
+    paypalNotice.className = `small mb-2 ${className}`;
+    paypalNotice.textContent = text;
+  }
+
   function toggleFiscales() {
     fiscalesSection.style.display = fiscalCheckbox.checked ? "block" : "none";
   }
-  fiscalCheckbox.addEventListener("change", toggleFiscales);
-  toggleFiscales();
-
-  // Donación: mostrar / ocultar opciones
-  if (donateToggle) {
-    donateToggle.addEventListener("change", () => {
-      donationOptions.style.display = donateToggle.checked ? "block" : "none";
-    });
-  }
-
-  // Donación: habilitar campo personalizado si se elige "Otro monto"
-  donateAmountRadios.forEach(r => {
-    r.addEventListener("change", () => {
-      if (r.value === "custom" && r.checked) {
-        donateCustomAmount.disabled = false;
-        donateCustomAmount.focus();
-      } else if (r.checked) {
-        donateCustomAmount.disabled = true;
-        donateCustomAmount.value = "";
-      }
-    });
-  });
 
   function getDonationAmount() {
-    if (!donateToggle || !donateToggle.checked) return 0;
-
+    if (!donateToggle?.checked) return 0;
     const selected = document.querySelector("input[name='donateAmount']:checked");
     if (!selected) return 0;
 
     if (selected.value === "custom") {
-      const val = Number(donateCustomAmount.value || "0");
-      return isNaN(val) || val < 0 ? 0 : val;
-    } else {
-      return Number(selected.value);
+      const custom = Number(donateCustomAmount.value || 0);
+      return Number.isFinite(custom) && custom > 0 ? custom : 0;
     }
+
+    return Number(selected.value || 0);
   }
 
   function generarReferencia(prefix) {
@@ -127,34 +118,317 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${prefix}-${num}`;
   }
 
-  function generarUUIDCFDI() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16).toUpperCase();
-    });
-  }
+  function renderCart(payload) {
+    currentCart = payload;
+    const items = payload?.items || [];
 
-  function generarSelloSAT() {
-    let sello = "SELLO-SAT-";
-    for (let i = 0; i < 5; i++) {
-      sello += Math.random().toString(36).toUpperCase().slice(2);
+    if (!items.length) {
+      cartBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">
+            Tu carrito está vacío.
+          </td>
+        </tr>
+      `;
+      if (shouldRedirectOnEmpty) {
+        setTimeout(() => {
+          window.location.href = "cart.html";
+        }, 1200);
+      }
+      return;
     }
-    return sello.slice(0, 220) + "...";
+
+    cartBody.innerHTML = items.map(item => `
+      <tr>
+        <td>
+          <div class="fw-semibold">${escapeHtml(item.nombre)}</div>
+          ${item.promocion ? `<div class="small text-success">${escapeHtml(item.promocion.nombre)} · ahorro por pieza ${money(item.descuento_unitario || 0)}</div>` : ""}
+          <div class="small text-muted">${escapeHtml(item.categoria)}</div>
+        </td>
+        <td>${Number(item.cantidad || 0)}</td>
+        <td>
+          ${Number(item.descuento_unitario || 0) > 0
+            ? `<div class="small text-decoration-line-through text-muted">${money(item.precio_lista)}</div><div>${money(item.precio_final)}</div>`
+            : money(item.precio_final)}
+        </td>
+        <td>${money(item.subtotal_final)}</td>
+      </tr>
+    `).join("");
+
+    const resumen = payload?.resumen || {};
+    cartSubtotal.textContent = money(resumen.subtotal || 0);
+    cartDiscount.textContent = `-${money(resumen.descuento_total || 0)}`;
+    cartTotal.textContent = money(resumen.total || 0);
+    cartTaxes.innerHTML = (payload?.impuestos || []).map(impuesto => `
+      <div class="d-flex justify-content-between small text-muted">
+        <span>${escapeHtml(impuesto.nombre)} (${Number(impuesto.porcentaje || 0)}%)</span>
+        <span>${money(impuesto.monto || 0)}</span>
+      </div>
+    `).join("") || `<div class="small text-muted">Sin impuestos activos.</div>`;
   }
 
-  function actualizarMetodo() {
-    const metodo = document.querySelector(
-      'input[name="metodoPago"]:checked'
-    )?.value;
+  async function loadCart() {
+    const payload = await apiFetch("/carrito/mio", { method: "GET" });
+    renderCart(payload);
+    await refreshCartBadge();
+  }
+
+  function collectFiscalData() {
+    return {
+      nombre_razon_social: document.getElementById("fiscalName").value.trim(),
+      rfc: document.getElementById("fiscalRFC").value.trim(),
+      direccion: document.getElementById("fiscalAddress").value.trim(),
+      codigo_postal: document.getElementById("fiscalCP").value.trim(),
+      correo: document.getElementById("fiscalEmail").value.trim()
+    };
+  }
+
+  function buildCheckoutPayload(methodOverride = "") {
+    const metodo = methodOverride || getSelectedMethod();
+    if (!metodo) {
+      throw new Error("Selecciona un método de pago.");
+    }
+
+    if (!currentCart?.items?.length) {
+      throw new Error("Tu carrito está vacío.");
+    }
+
+    const requiereFactura = Boolean(fiscalCheckbox.checked);
+    const fiscalData = requiereFactura ? collectFiscalData() : null;
+
+    if (requiereFactura && (!fiscalData.nombre_razon_social || !fiscalData.rfc || !fiscalData.correo)) {
+      throw new Error("Para facturar debes completar nombre o razón social, RFC y correo.");
+    }
+
+    if (metodo === "Tarjeta") {
+      const cardName = document.getElementById("cardName").value.trim();
+      const cardNumber = document.getElementById("cardNumber").value.trim();
+      const cardExp = document.getElementById("cardExp").value.trim();
+      const cardCVV = document.getElementById("cardCVV").value.trim();
+      if (!cardName || !cardNumber || !cardExp || !cardCVV) {
+        throw new Error("Completa los datos de la tarjeta.");
+      }
+    }
+
+    if (metodo === "Micropago") {
+      const amount = Number(document.getElementById("micropagoMonto").value || 0);
+      if (amount <= 0) {
+        throw new Error("Selecciona un monto de micropago.");
+      }
+    }
+
+    if (metodo === "Cheque electrónico") {
+      const chequeNumero = document.getElementById("chequeNumero").value.trim();
+      const chequeBanco = document.getElementById("chequeBanco").value.trim();
+      const chequeFecha = document.getElementById("chequeFecha").value;
+      const chequeMonto = document.getElementById("chequeMonto").value;
+      if (!chequeNumero || !chequeBanco || !chequeFecha || !chequeMonto) {
+        throw new Error("Completa los datos del cheque electrónico.");
+      }
+    }
+
+    const donation = getDonationAmount();
+    if (!Number.isFinite(donation) || donation < 0) {
+      throw new Error("La donación no puede ser negativa.");
+    }
+
+    if (metodo === "Monedero electrónico") {
+      const totalFinal = Number(currentCart?.resumen?.total || 0) + donation;
+      const saldo = getWallet();
+      if (saldo < totalFinal) {
+        throw new Error(`Saldo insuficiente en el monedero. Saldo actual: ${money(saldo)}.`);
+      }
+    }
+
+    return {
+      metodo,
+      donation,
+      requiere_factura: requiereFactura,
+      datos_fiscales: fiscalData
+    };
+  }
+
+  function updateInvoiceActions(payload) {
+    currentInvoicePayload = payload?.pago?.factura_disponible ? payload : null;
+    if (!invoiceActionsBox) return;
+    invoiceActionsBox.classList.toggle("d-none", !currentInvoicePayload);
+  }
+
+  async function handleSuccessfulPayment(response, successMessage) {
+    setPaymentStatus("success", successMessage);
+    if (folioLabel) folioLabel.textContent = response?.folio || "";
+    if (paymentSummaryLabel) paymentSummaryLabel.textContent = money(response?.pago?.monto || 0);
+    if (paymentReferenceLabel) paymentReferenceLabel.textContent = response?.referencia || "";
+    updateInvoiceActions(response);
+    if (response?.pago?.factura_disponible) {
+      openFacturaWindow?.(response);
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById("compraExitosaModal"));
+    modal.show();
+
+    shouldRedirectOnEmpty = false;
+    await refreshCartBadge();
+    await loadCart();
+  }
+
+  async function loadPayPalConfig() {
+    if (payPalConfig) return payPalConfig;
+
+    try {
+      payPalConfig = await apiFetch("/pagos/paypal/config", { method: "GET" });
+      if (!payPalConfig?.enabled) {
+        setPayPalNotice("PayPal Sandbox está deshabilitado hasta capturar el client id y secret en el backend.", "warning");
+      } else {
+        setPayPalNotice("PayPal Sandbox listo para usarse.", "success");
+      }
+    } catch (err) {
+      payPalConfig = { enabled: false };
+      setPayPalNotice(err.message || "No se pudo cargar la configuración de PayPal.", "danger");
+    }
+
+    return payPalConfig;
+  }
+
+  async function loadPayPalSdk() {
+    const config = await loadPayPalConfig();
+    if (!config?.enabled || !config.clientId) {
+      throw new Error("PayPal Sandbox no está configurado en este ambiente.");
+    }
+
+    if (window.paypal?.Buttons) {
+      return window.paypal;
+    }
+
+    if (!payPalSdkPromise) {
+      payPalSdkPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[data-paypal-sdk="true"]');
+        if (existing) {
+          existing.addEventListener("load", () => resolve(window.paypal));
+          existing.addEventListener("error", () => reject(new Error("No se pudo cargar el SDK de PayPal.")));
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=${encodeURIComponent(config.currency || "MXN")}&intent=capture&components=buttons`;
+        script.async = true;
+        script.dataset.paypalSdk = "true";
+        script.onload = () => {
+          if (window.paypal?.Buttons) {
+            resolve(window.paypal);
+          } else {
+            reject(new Error("El SDK de PayPal se cargó sin exponer los botones."));
+          }
+        };
+        script.onerror = () => reject(new Error("No se pudo cargar el SDK de PayPal."));
+        document.head.appendChild(script);
+      });
+    }
+
+    return payPalSdkPromise;
+  }
+
+  async function ensurePayPalButtons() {
+    if (payPalButtonsReady || !paypalButtonsContainer) return;
+
+    const config = await loadPayPalConfig();
+    if (!config?.enabled) {
+      throw new Error("PayPal Sandbox no está configurado todavía.");
+    }
+
+    const paypal = await loadPayPalSdk();
+    paypalButtonsContainer.innerHTML = "";
+
+    await paypal.Buttons({
+      style: {
+        layout: "vertical",
+        shape: "rect",
+        label: "paypal"
+      },
+      createOrder: async () => {
+        clearPaymentStatus();
+
+        try {
+          const checkout = buildCheckoutPayload(PAYPAL_METHOD);
+          pendingPayPalPayload = checkout;
+          setPaymentStatus("info", "Creando orden en PayPal Sandbox...");
+
+          const response = await apiFetch("/pagos/paypal/create-order", {
+            method: "POST",
+            body: JSON.stringify({
+              requiere_factura: checkout.requiere_factura,
+              datos_fiscales: checkout.datos_fiscales,
+              donacion_total: checkout.donation
+            })
+          });
+
+          return response.id;
+        } catch (err) {
+          setPaymentStatus("danger", err.message || "No se pudo iniciar el flujo de PayPal.");
+          throw err;
+        }
+      },
+      onApprove: async data => {
+        try {
+          const checkout = pendingPayPalPayload || buildCheckoutPayload(PAYPAL_METHOD);
+          setPaymentStatus("info", "Capturando pago en PayPal Sandbox...");
+
+          const response = await apiFetch("/pagos/paypal/capture-order", {
+            method: "POST",
+            body: JSON.stringify({
+              paypal_order_id: data.orderID,
+              requiere_factura: checkout.requiere_factura,
+              datos_fiscales: checkout.datos_fiscales,
+              donacion_total: checkout.donation
+            })
+          });
+
+          pendingPayPalPayload = null;
+          await handleSuccessfulPayment(response, "Pago aprobado con PayPal Sandbox y compra registrada correctamente.");
+        } catch (err) {
+          setPaymentStatus("danger", err.message || "No se pudo confirmar el pago con PayPal.");
+        }
+      },
+      onCancel: () => {
+        pendingPayPalPayload = null;
+        setPaymentStatus("warning", "El pago con PayPal Sandbox fue cancelado.");
+      },
+      onError: err => {
+        pendingPayPalPayload = null;
+        const message = err?.message || "No se pudo completar el flujo de PayPal Sandbox.";
+        setPaymentStatus("danger", message);
+      }
+    }).render("#paypalButtons");
+
+    payPalButtonsReady = true;
+    setPayPalNotice("PayPal Sandbox listo para autorizar el pago.", "success");
+  }
+
+  async function actualizarMetodo() {
+    const metodo = getSelectedMethod();
     if (!metodo) return;
 
-    // Ocultar todo al inicio
     datosTarjetaDiv.style.display = "none";
     infoOtrosDiv.style.display = "none";
     infoOtrosDiv.innerHTML = "";
     datosMicropagoDiv.style.display = "none";
     datosChequeDiv.style.display = "none";
+    if (paypalSection) paypalSection.style.display = "none";
+    if (btnConfirmarPago) btnConfirmarPago.style.display = "";
+    if (escenarioSelect) escenarioSelect.disabled = false;
+
+    if (metodo === PAYPAL_METHOD) {
+      if (btnConfirmarPago) btnConfirmarPago.style.display = "none";
+      if (paypalSection) paypalSection.style.display = "block";
+      if (escenarioSelect) escenarioSelect.disabled = true;
+
+      try {
+        await ensurePayPalButtons();
+      } catch (err) {
+        setPayPalNotice(err.message || "No fue posible preparar PayPal Sandbox.", "danger");
+      }
+      return;
+    }
 
     if (metodo === "Tarjeta") {
       datosTarjetaDiv.style.display = "block";
@@ -171,418 +445,147 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Otros métodos que usan infoOtrosMetodos
     infoOtrosDiv.style.display = "block";
 
     if (metodo === "Transferencia SPEI") {
-      const ref = generarReferencia("TRF");
       infoOtrosDiv.innerHTML = `
         <h6 class="fw-bold mb-2">Transferencia SPEI</h6>
-        <p class="mb-1">Banco: Banco BBVA</p>
-        <p class="mb-1">Cuenta: 00012345678</p>
+        <p class="mb-1">Banco: BBVA Demo</p>
         <p class="mb-1">CLABE: 000000000000000000</p>
-        <p class="mb-0"><strong>Referencia:</strong> ${ref}</p>
+        <p class="mb-0"><strong>Referencia:</strong> ${generarReferencia("TRF")}</p>
       `;
     } else if (metodo === "Depósito bancario") {
-      const ref = generarReferencia("DEP");
       infoOtrosDiv.innerHTML = `
         <h6 class="fw-bold mb-2">Depósito bancario</h6>
-        <p class="mb-1">Banco: Banco BBVA</p>
-        <p class="mb-1">Sucursal: 001 Ejemplo</p>
-        <p class="mb-1">Cuenta: 00098765432</p>
-        <p class="mb-0"><strong>Referencia para depósito:</strong> ${ref}</p>
+        <p class="mb-1">Banco: BBVA Demo</p>
+        <p class="mb-0"><strong>Referencia para depósito:</strong> ${generarReferencia("DEP")}</p>
       `;
     } else if (metodo === "Cajero automático") {
-      const ref = generarReferencia("ATM");
-      const convenio = Math.floor(10000 + Math.random() * 90000);
       infoOtrosDiv.innerHTML = `
-        <h6 class="fw-bold mb-2">Pago en cajero automático</h6>
-        <p class="mb-1">Acude a un cajero de tu banco.</p>
-        <p class="mb-1">Selecciona "Pago de servicios".</p>
-        <p class="mb-1"><strong>Convenio:</strong> ${convenio}</p>
-        <p class="mb-2"><strong>Referencia:</strong> ${ref}</p>
-        <p class="small text-muted mb-0">Datos solo ilustrativos. No funcionan en un cajero real.</p>
+        <h6 class="fw-bold mb-2">Pago en cajero</h6>
+        <p class="mb-1">Convenio: ${Math.floor(10000 + Math.random() * 90000)}</p>
+        <p class="mb-0"><strong>Referencia:</strong> ${generarReferencia("ATM")}</p>
       `;
     } else if (metodo === "Pago en OXXO") {
-      const ref = generarReferencia("OXXO");
-      const codigoNumerico = Math.floor(
-        100000000000 + Math.random() * 900000000000
-      );
       infoOtrosDiv.innerHTML = `
         <h6 class="fw-bold mb-2">Pago en OXXO</h6>
-        <p class="mb-1">Acude a tu OXXO más cercano.</p>
-        <p class="mb-1">Indica que pagarás un servicio con la referencia:</p>
-        <p class="mb-2"><strong>${ref}</strong></p>
-        <p class="mb-1">O utiliza este QR:</p>
-        <div class="text-center mb-2">
+        <p class="mb-1">Presenta la referencia al cajero:</p>
+        <p class="mb-2"><strong>${generarReferencia("OXXO")}</strong></p>
+        <div class="text-center">
           <img src="img/oxxo-qr.png" alt="QR OXXO" style="max-width:160px;">
         </div>
-        <p class="mb-1">Si no se puede escanear, proporciona este código numérico:</p>
-        <p class="mb-2"><strong>${codigoNumerico}</strong></p>
-        <p class="small text-muted mb-0">Datos ilustrativos. No funcionan en caja real.</p>
       `;
     } else if (metodo === "Monedero electrónico") {
       const saldo = getWallet();
       infoOtrosDiv.innerHTML = `
         <h6 class="fw-bold mb-2">Monedero electrónico</h6>
-        <p class="mb-1">Saldo disponible en tu monedero:</p>
-        <p class="display-6">$${saldo.toFixed(2)} MXN</p>
-        <p class="small text-muted mb-1">
-          Este saldo se guarda de forma en tu navegador (localStorage). 
-          Puedes recargarlo desde el módulo de Micropagos.
-        </p>
-        <p class="small text-muted mb-0">
-          Para la simulación, el saldo debe ser suficiente para cubrir el total de la compra.
-        </p>
+        <p class="mb-1">Saldo disponible:</p>
+        <p class="display-6">${money(saldo)}</p>
+        <p class="small text-muted mb-0">El saldo del monedero se mantiene en tu navegador para esta demo.</p>
       `;
-    } else {
-      infoOtrosDiv.innerHTML = "";
     }
   }
 
-  radiosMetodo.forEach((r) => r.addEventListener("change", actualizarMetodo));
-  actualizarMetodo();
+  async function processPayment() {
+    clearPaymentStatus();
 
-  // Micropago: asignar monto
-  document.querySelectorAll(".micropago-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const amount = Number(btn.dataset.amount || "0");
-      document.getElementById("micropagoMonto").value = amount;
-      alert("Micropago seleccionado: $" + amount.toFixed(2) + " MXN");
-    });
-  });
-
-  document
-    .getElementById("btnConfirmarPago")
-    .addEventListener("click", () => {
-      clearPaymentStatus();
-
-      const metodo = document.querySelector(
-        'input[name="metodoPago"]:checked'
-      )?.value;
-
-      const fiscalName = document.getElementById("fiscalName")
-        ? document.getElementById("fiscalName").value.trim()
-        : "";
-      const fiscalRFC = document.getElementById("fiscalRFC")
-        ? document.getElementById("fiscalRFC").value.trim()
-        : "";
-      const fiscalAddress = document.getElementById("fiscalAddress")
-        ? document.getElementById("fiscalAddress").value.trim()
-        : "";
-      const fiscalCP = document.getElementById("fiscalCP")
-        ? document.getElementById("fiscalCP").value.trim()
-        : "";
-      const fiscalEmail = document.getElementById("fiscalEmail")
-        ? document.getElementById("fiscalEmail").value.trim()
-        : "";
-      const requiereFactura = fiscalCheckbox.checked;
-
-      if (!metodo) {
-        alert("Selecciona un método de pago.");
-        return;
+    try {
+      const checkout = buildCheckoutPayload();
+      if (checkout.metodo === PAYPAL_METHOD) {
+        throw new Error("Usa el botón de PayPal Sandbox para completar ese método de pago.");
       }
-
-      if (requiereFactura) {
-        if (!fiscalName || !fiscalRFC || !fiscalEmail) {
-          alert(
-            "Para generar la factura, completa Nombre/Razón social, RFC y correo."
-          );
-          return;
-        }
-      }
-
-      if (metodo === "Tarjeta") {
-        const cardName = document.getElementById("cardName").value.trim();
-        const cardNumber = document.getElementById("cardNumber").value.trim();
-        const cardExp = document.getElementById("cardExp").value.trim();
-        const cardCVV = document.getElementById("cardCVV").value.trim();
-        if (!cardName || !cardNumber || !cardExp || !cardCVV) {
-          alert("Por favor, llena los datos de la tarjeta.");
-          return;
-        }
-      }
-
-      if (metodo === "Micropago") {
-        const monto = Number(
-          document.getElementById("micropagoMonto").value || "0"
-        );
-        if (monto <= 0) {
-          alert("Selecciona un monto de micropago.");
-          return;
-        }
-      }
-
-      if (metodo === "Cheque electrónico") {
-        const num = document.getElementById("chequeNumero").value.trim();
-        const banco = document.getElementById("chequeBanco").value.trim();
-        const fechaCh = document.getElementById("chequeFecha").value;
-        const montoCh = document.getElementById("chequeMonto").value;
-        if (!num || !banco || !fechaCh || !montoCh) {
-          alert("Completa todos los datos del cheque electrónico.");
-          return;
-        }
-      }
-
-      const cart = loadCart();
-      if (!cart || Object.keys(cart).length === 0) {
-        alert("Tu carrito está vacío. Te redirigimos al carrito.");
-        window.location.href = "cart.html";
-        return;
-      }
-
-      if (!PRODUCTS || PRODUCTS.length === 0) {
-        alert("No se pudieron cargar los productos. Intenta recargar la página.");
-        return;
-      }
-
-      const folio = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-      document.getElementById("folioLabel").textContent = folio;
-
-      let total = 0;
-      let rows = "";
-      Object.entries(cart).forEach(([id, qty]) => {
-        const p = PRODUCTS.find((x) => x.id === id);
-        if (!p) return;
-        const subtotal = p.precio * qty;
-        total += subtotal;
-        rows += `
-          <tr>
-            <td>${p.nombre}</td>
-            <td style="text-align:center;">${qty}</td>
-            <td style="text-align:right;">$${p.precio.toFixed(2)}</td>
-            <td style="text-align:right;">$${subtotal.toFixed(2)}</td>
-          </tr>
-        `;
-      });
-
-      const donacion = getDonationAmount();
-      if (donacion < 0) {
-        alert("El monto de donación no puede ser negativo.");
-        return;
-      }
-
-      const totalConDonacion = total + donacion;
-
-      // Validar monedero (si lo seleccionó)
-      if (metodo === "Monedero electrónico") {
-        const saldo = getWallet();
-        if (saldo < totalConDonacion) {
-          alert(
-            "Saldo insuficiente en el monedero para cubrir el total de la compra (incluyendo la donación).\n" +
-            "Saldo actual: $" + saldo.toFixed(2) + " MXN.\n" +
-            "Total de la compra: $" + totalConDonacion.toFixed(2) + " MXN.\n" +
-            "Puedes recargar saldo desde el módulo de Micropagos."
-          );
-          return;
-        }
-      }
-
-      const fecha = new Date().toLocaleString("es-MX");
-
-      const uuidCFDI = requiereFactura ? generarUUIDCFDI() : null;
-      const selloSAT = requiereFactura ? generarSelloSAT() : null;
-      const usoCFDI = requiereFactura ? "G03 - Gastos en general" : null;
-
-      let cfdiSection = "";
-      if (requiereFactura) {
-        cfdiSection = `
-          <div class="section">
-            <h2>Datos CFDI</h2>
-            <p><strong>Uso CFDI:</strong> ${usoCFDI}</p>
-            <p><strong>UUID CFDI:</strong> ${uuidCFDI}</p>
-            <p><strong>Sello digital del SAT:</strong></p>
-            <p class="small" style="word-wrap:break-word;">${selloSAT}</p>
-          </div>
-        `;
-      } else {
-        cfdiSection = `
-          <div class="section small">
-            <p><strong>CFDI:</strong> No se solicitó factura para esta compra.</p>
-          </div>
-        `;
-      }
-
-      const facturaHTML = `
-        <!doctype html>
-        <html lang="es">
-        <head>
-          <meta charset="utf-8">
-          <title>Factura  - ${folio}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { color: #8b5a2b; }
-            h2 { margin-top: 30px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
-            th { background: #f4eadc; text-align: left; }
-            .totals { text-align: right; font-weight: bold; }
-            .small { font-size: 12px; color: #555; }
-            .section { margin-top: 18px; }
-          </style>
-        </head>
-        <body>
-          <h1>Thrift Cálido Bazar</h1>
-          <p><strong>Factura</strong></p>
-
-          <div class="section">
-            <p><strong>Folio:</strong> ${folio}</p>
-            <p><strong>Fecha:</strong> ${fecha}</p>
-            <p><strong>Método de pago:</strong> ${metodo}</p>
-          </div>
-
-          <div class="section">
-            <h2>Datos fiscales del cliente</h2>
-            <p><strong>Nombre / Razón social:</strong> ${
-              requiereFactura ? fiscalName : "No se solicitó factura"
-            }</p>
-            <p><strong>RFC:</strong> ${
-              requiereFactura ? fiscalRFC : "N/A (sin factura)"
-            }</p>
-            <p><strong>Dirección:</strong> ${
-              requiereFactura ? fiscalAddress || "-" : "-"
-            } &nbsp; C.P. ${requiereFactura ? fiscalCP || "-" : "-"}</p>
-            <p><strong>Correo:</strong> ${
-              requiereFactura ? fiscalEmail : "N/A"
-            }</p>
-          </div>
-
-          <div class="section">
-            <h2>Detalle de la compra</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th style="text-align:center;">Cantidad</th>
-                  <th style="text-align:right;">Precio</th>
-                  <th style="text-align:right;">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows}
-                ${donacion > 0 ? `
-                  <tr>
-                    <td>Donación voluntaria — Programa "Abrigo Cálido"</td>
-                    <td style="text-align:center;">1</td>
-                    <td style="text-align:right;">$${donacion.toFixed(2)}</td>
-                    <td style="text-align:right;">$${donacion.toFixed(2)}</td>
-                  </tr>
-                ` : ""}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3" class="totals">Total</td>
-                  <td class="totals">$${totalConDonacion.toFixed(2)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          ${cfdiSection}
-
-          <div class="section small">
-            <p><strong>Aviso importante:</strong></p>
-            <ul>
-              <li>Esta factura es únicamente con fines académicos y de simulación. No tiene validez fiscal.</li>
-              <li>Las prendas son de segunda mano y pueden presentar ligeros detalles no visibles en las fotografías.</li>
-              <li>Se recomienda lavar la prenda antes de su primer uso.</li>
-              <li>La donación al programa "Abrigo Cálido" es simulada y no es deducible de impuestos.</li>
-            </ul>
-            <p>Gracias por comprar en Thrift Cálido Bazar.</p>
-          </div>
-        </body>
-        </html>
-      `;
 
       setPaymentStatus("info", "Procesando pago...");
 
-      const escenario = escenarioSelect ? escenarioSelect.value : "normal";
+      const response = await apiFetch("/pagos/procesar", {
+        method: "POST",
+        body: JSON.stringify({
+          metodo_pago: checkout.metodo,
+          requiere_factura: checkout.requiere_factura,
+          datos_fiscales: checkout.datos_fiscales,
+          donacion_total: checkout.donation,
+          escenario: escenarioSelect?.value || "normal"
+        })
+      });
 
-      setTimeout(() => {
-
-        // Escenarios especiales
-        if (escenario !== "normal") {
-          if (escenario === "duplicado") {
-            setPaymentStatus(
-              "warning",
-              "Pago rechazado: posible duplicado de tarjeta."
-            );
-          } else if (escenario === "fondos") {
-            setPaymentStatus(
-              "danger",
-              "Pago rechazado: fondos insuficientes en la cuenta."
-            );
-          } else if (escenario === "doble") {
-            setPaymentStatus(
-              "warning",
-              "Aviso: se detectó un posible pago doble. Esta transacción ha sido detenida."
-            );
-          } else if (escenario === "conexion") {
-            setPaymentStatus(
-              "danger",
-              "Fallo de conexión con el procesador de pagos. Intenta nuevamente más tarde."
-            );
-          }
-          return;
-        }
-
-        // Flujo normal: pago aleatorio (80% éxito)
-        const aprobado = Math.random() < 0.8;
-
-        if (!aprobado) {
-          setPaymentStatus(
-            "danger",
-            "Pago rechazado. Intenta nuevamente o prueba con otro método de pago."
-          );
-          return;
-        }
-
-        // Si fue con monedero y está aprobado, descontamos saldo
-        if (metodo === "Monedero electrónico") {
-          const saldoActual = getWallet();
-          const nuevoSaldo = saldoActual - totalConDonacion;
-          setWallet(nuevoSaldo);
-        }
-
-        // Mensaje clásico
-        setPaymentStatus(
-          "success",
-          "Pago aprobado. Cobro realizado."
-        );
-
-        const facturaWin = window.open("", "_blank");
-        if (facturaWin) {
-          facturaWin.document.open();
-          facturaWin.document.write(facturaHTML);
-          facturaWin.document.close();
-          facturaWin.focus();
-          facturaWin.print();
-        } else {
-          alert(
-            "El navegador bloqueó la ventana emergente de la factura. Permite ventanas emergentes para ver la factura."
-          );
-        }
-
-        const compraModal = new bootstrap.Modal(
-          document.getElementById("compraExitosaModal")
-        );
-        compraModal.show();
-
-        localStorage.setItem(CART_KEY, JSON.stringify({}));
-        renderCart();
-      }, 1000);
-    });
-
-  fetch("src/data/products.json")
-    .then((r) => r.json())
-    .then((data) => {
-      PRODUCTS = data;
-      const cart = loadCart();
-      if (!cart || Object.keys(cart).length === 0) {
-        alert("Tu carrito está vacío. Te redirigimos al carrito.");
-        window.location.href = "cart.html";
-        return;
+      if (checkout.metodo === "Monedero electrónico") {
+        setWallet(getWallet() - Number(response?.pago?.monto || 0));
       }
-      renderCart();
+
+      await handleSuccessfulPayment(response, "Pago aprobado y compra registrada correctamente.");
+    } catch (err) {
+      setPaymentStatus("danger", err.message || "No se pudo procesar el pago.");
+    }
+  }
+
+  btnInvoiceView?.addEventListener("click", () => {
+    if (!currentInvoicePayload) return;
+    openFacturaWindow?.(currentInvoicePayload);
+  });
+
+  btnInvoicePdf?.addEventListener("click", () => {
+    if (!currentInvoicePayload) return;
+    downloadFacturaPdf?.(currentInvoicePayload);
+  });
+
+  btnInvoiceEmail?.addEventListener("click", async () => {
+    if (!currentInvoicePayload?.pago?.id) return;
+
+    try {
+      btnInvoiceEmail.disabled = true;
+      const result = await enviarFacturaPorCorreo?.(currentInvoicePayload.pago.id);
+      if (result?.sent) {
+        setPaymentStatus("success", "Factura enviada por correo correctamente.");
+        currentInvoicePayload.pago.factura_estado = "enviada";
+        currentInvoicePayload.pago.factura_fecha_envio = new Date().toISOString();
+      } else {
+        setPaymentStatus("info", "No fue posible enviar correo real, pero la factura quedó disponible para descarga.");
+      }
+    } catch (err) {
+      setPaymentStatus("danger", err.message || "No se pudo enviar la factura.");
+    } finally {
+      btnInvoiceEmail.disabled = false;
+    }
+  });
+
+  fiscalCheckbox?.addEventListener("change", toggleFiscales);
+  toggleFiscales();
+
+  donateToggle?.addEventListener("change", () => {
+    donationOptions.style.display = donateToggle.checked ? "block" : "none";
+  });
+  donationOptions.style.display = donateToggle?.checked ? "block" : "none";
+
+  donateAmountRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      if (radio.checked && radio.value === "custom") {
+        donateCustomAmount.disabled = false;
+        donateCustomAmount.focus();
+      } else if (radio.checked) {
+        donateCustomAmount.disabled = true;
+        donateCustomAmount.value = "";
+      }
+    });
+  });
+
+  radiosMetodo.forEach(radio => radio.addEventListener("change", () => {
+    void actualizarMetodo();
+  }));
+
+  document.querySelectorAll(".micropago-btn").forEach(btn => {
+    btn.addEventListener("click", event => {
+      event.preventDefault();
+      const amount = Number(btn.dataset.amount || 0);
+      document.getElementById("micropagoMonto").value = amount;
+      setPaymentStatus("secondary", `Micropago seleccionado: ${money(amount)}`);
+    });
+  });
+
+  btnConfirmarPago?.addEventListener("click", processPayment);
+
+  Promise.all([loadCart(), loadPayPalConfig()])
+    .then(() => actualizarMetodo())
+    .catch(err => {
+      setPaymentStatus("danger", err.message || "No se pudo cargar el checkout.");
     });
 });

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Diagrama de base de datos por módulos</title>
+  <desc id="desc">Agrupación de tablas de la base de datos Thrift Cálido por módulos funcionales.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 42px Arial, sans-serif; fill: #1f2937; }
+      .subtitle { font: 400 20px Arial, sans-serif; fill: #64748b; }
+      .module { fill: #ffffff; stroke: #d6b48d; stroke-width: 3; rx: 18; }
+      .module-title { font: 700 23px Arial, sans-serif; fill: #8b5e3c; }
+      .table { fill: #f9f5ef; stroke: #ead7c2; stroke-width: 1.5; rx: 10; }
+      .table-text { font: 600 17px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #94a3b8; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .note { font: 400 17px Arial, sans-serif; fill: #64748b; }
+      .badge { fill: #e7f0ea; stroke: #a7c7b2; stroke-width: 1.5; rx: 12; }
+      .badge-text { font: 600 16px Arial, sans-serif; fill: #2f5d46; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1400" height="900"/>
+  <text class="title" x="70" y="75">Modelo de Base de Datos por Módulos</text>
+  <text class="subtitle" x="70" y="112">Thrift Cálido Bazar · Organización funcional de las tablas principales</text>
+
+  <g transform="translate(70 160)">
+    <rect class="module" width="270" height="170"/>
+    <text class="module-title" x="24" y="42">Autenticación</text>
+    <rect class="table" x="24" y="65" width="220" height="36"/>
+    <text class="table-text" x="42" y="89">usuarios</text>
+    <rect class="table" x="24" y="112" width="220" height="36"/>
+    <text class="table-text" x="42" y="136">clientes</text>
+  </g>
+
+  <g transform="translate(410 145)">
+    <rect class="module" width="300" height="215"/>
+    <text class="module-title" x="24" y="42">Catálogo</text>
+    <rect class="table" x="24" y="65" width="245" height="36"/>
+    <text class="table-text" x="42" y="89">productos</text>
+    <rect class="table" x="24" y="112" width="245" height="36"/>
+    <text class="table-text" x="42" y="136">categorias</text>
+    <rect class="table" x="24" y="159" width="245" height="36"/>
+    <text class="table-text" x="42" y="183">promociones</text>
+  </g>
+
+  <g transform="translate(785 160)">
+    <rect class="module" width="285" height="170"/>
+    <text class="module-title" x="24" y="42">Carrito</text>
+    <rect class="table" x="24" y="65" width="235" height="36"/>
+    <text class="table-text" x="42" y="89">carritos</text>
+    <rect class="table" x="24" y="112" width="235" height="36"/>
+    <text class="table-text" x="42" y="136">carrito_detalle</text>
+  </g>
+
+  <g transform="translate(1115 145)">
+    <rect class="module" width="245" height="215"/>
+    <text class="module-title" x="24" y="42">Compras</text>
+    <rect class="table" x="24" y="65" width="195" height="36"/>
+    <text class="table-text" x="42" y="89">ordenes</text>
+    <rect class="table" x="24" y="112" width="195" height="36"/>
+    <text class="table-text" x="42" y="136">ordenes_items</text>
+    <rect class="table" x="24" y="159" width="195" height="36"/>
+    <text class="table-text" x="42" y="183">pagos</text>
+  </g>
+
+  <path class="arrow" d="M340 245 C365 245, 380 245, 410 245"/>
+  <path class="arrow" d="M710 245 C740 245, 755 245, 785 245"/>
+  <path class="arrow" d="M1070 245 C1090 245, 1098 245, 1115 245"/>
+
+  <g transform="translate(70 450)">
+    <rect class="module" width="300" height="260"/>
+    <text class="module-title" x="24" y="42">Inventario y SCM</text>
+    <rect class="table" x="24" y="65" width="245" height="36"/>
+    <text class="table-text" x="42" y="89">movimientos_inventario</text>
+    <rect class="table" x="24" y="112" width="245" height="36"/>
+    <text class="table-text" x="42" y="136">alertas_stock</text>
+    <rect class="table" x="24" y="159" width="245" height="36"/>
+    <text class="table-text" x="42" y="183">proveedores</text>
+    <rect class="table" x="24" y="206" width="245" height="36"/>
+    <text class="table-text" x="42" y="230">pedidos_proveedor</text>
+  </g>
+
+  <g transform="translate(430 450)">
+    <rect class="module" width="310" height="260"/>
+    <text class="module-title" x="24" y="42">CRM y Atención</text>
+    <rect class="table" x="24" y="65" width="255" height="36"/>
+    <text class="table-text" x="42" y="89">interacciones</text>
+    <rect class="table" x="24" y="112" width="255" height="36"/>
+    <text class="table-text" x="42" y="136">mensajes_cliente</text>
+    <rect class="table" x="24" y="159" width="255" height="36"/>
+    <text class="table-text" x="42" y="183">tickets_atencion</text>
+    <rect class="table" x="24" y="206" width="255" height="36"/>
+    <text class="table-text" x="42" y="230">metricas</text>
+  </g>
+
+  <g transform="translate(805 470)">
+    <rect class="module" width="285" height="215"/>
+    <text class="module-title" x="24" y="42">ERP</text>
+    <rect class="table" x="24" y="65" width="235" height="36"/>
+    <text class="table-text" x="42" y="89">erp_estado</text>
+    <rect class="table" x="24" y="112" width="235" height="36"/>
+    <text class="table-text" x="42" y="136">procesos_erp</text>
+    <rect class="table" x="24" y="159" width="235" height="36"/>
+    <text class="table-text" x="42" y="183">recursos_erp</text>
+  </g>
+
+  <g transform="translate(1145 515)">
+    <rect class="module" width="215" height="125"/>
+    <text class="module-title" x="24" y="42">Sistema</text>
+    <rect class="table" x="24" y="65" width="165" height="36"/>
+    <text class="table-text" x="42" y="89">impuestos</text>
+  </g>
+
+  <path class="arrow" d="M560 360 C545 405, 520 430, 500 450"/>
+  <path class="arrow" d="M575 360 C690 400, 735 450, 805 540"/>
+  <path class="arrow" d="M1235 360 C1235 410, 1235 455, 1235 515"/>
+  <path class="arrow" d="M420 245 C250 330, 220 380, 220 450"/>
+  <path class="arrow" d="M1115 330 C960 420, 770 455, 740 520"/>
+
+  <g transform="translate(70 790)">
+    <rect class="badge" width="230" height="42"/>
+    <text class="badge-text" x="18" y="27">Tabla interna: sqlite_sequence</text>
+  </g>
+  <text class="note" x="330" y="817">La tabla pedidos es legado; el flujo actual usa ordenes y ordenes_items.</text>
+</svg>

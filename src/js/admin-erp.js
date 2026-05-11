@@ -77,6 +77,18 @@
     return `$${Number(n || 0).toFixed(2)}`;
   }
 
+  function seguimientoLabel(value) {
+    const map = {
+      en_almacen: "En almacén",
+      en_central_para_envio: "En central para envío",
+      en_envio: "En envío",
+      entregado: "Entregado",
+      incidencia: "Incidencia",
+      cancelado: "Cancelado"
+    };
+    return map[String(value || "").toLowerCase()] || (value || "En almacén");
+  }
+
   function hasRole(...roles) {
     return roles.includes(rol);
   }
@@ -227,7 +239,7 @@
     const rows = await apiFetch("/ordenes", { method: "GET" });
 
     if (!rows.length) {
-      ordenesBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Sin órdenes aún</td></tr>`;
+      ordenesBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Sin órdenes aún</td></tr>`;
       return;
     }
 
@@ -244,6 +256,19 @@
           }">
             ${escapeHtml(o.estado)}
           </span>
+        </td>
+        <td style="min-width:210px;">
+          <select class="form-select form-select-sm" data-logistica="${o.id}">
+            <option value="en_almacen" ${o.estado_logistico === "en_almacen" ? "selected" : ""}>En almacén</option>
+            <option value="en_central_para_envio" ${o.estado_logistico === "en_central_para_envio" ? "selected" : ""}>En central para envío</option>
+            <option value="en_envio" ${o.estado_logistico === "en_envio" ? "selected" : ""}>En envío</option>
+            <option value="entregado" ${o.estado_logistico === "entregado" ? "selected" : ""}>Entregado</option>
+            <option value="incidencia" ${o.estado_logistico === "incidencia" ? "selected" : ""}>Incidencia</option>
+            <option value="cancelado" ${o.estado_logistico === "cancelado" ? "selected" : ""}>Cancelado</option>
+          </select>
+          <div class="small text-muted mt-1">
+            ${escapeHtml(seguimientoLabel(o.estado_logistico))}
+          </div>
         </td>
         <td>${money(o.total)}</td>
         <td class="d-flex gap-1 flex-wrap">
@@ -634,6 +659,25 @@
       } catch (e) {
         showMsg("❌ " + e.message, "danger");
       }
+    }
+  });
+
+  document.addEventListener("change", async (e) => {
+    const select = e.target.closest("select[data-logistica]");
+    if (!select) return;
+
+    try {
+      await apiFetch(`/ordenes/${select.dataset.logistica}/logistica`, {
+        method: "PUT",
+        body: JSON.stringify({
+          estado_logistico: select.value
+        })
+      });
+      showMsg("✅ Seguimiento actualizado");
+      await loadOrdenes();
+    } catch (err) {
+      showMsg("❌ " + err.message, "danger");
+      await loadOrdenes();
     }
   });
 
